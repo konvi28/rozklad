@@ -133,6 +133,51 @@
             background: #c82333;
         }
 
+        .btn-success {
+            background: #28a745;
+            color: white;
+            padding: 12px 30px;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+            padding: 12px 30px;
+            font-size: 16px;
+        }
+
+        .btn-info:hover {
+            background: #138496;
+        }
+
+        .save-load-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .save-load-section h3 {
+            width: 100%;
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 18px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
         .class-list {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -505,6 +550,12 @@
         </div>
 
         <div id="scheduleTab" class="tab-content">
+            <div class="save-load-section">
+                <h3>💾 Збереження та завантаження</h3>
+                <button class="btn btn-success" onclick="saveData()">💾 Зберегти розклад</button>
+                <button class="btn btn-info" onclick="document.getElementById('fileInput').click()">📂 Завантажити розклад</button>
+                <input type="file" id="fileInput" accept=".json" onchange="loadData(event)">
+            </div>
             <div id="scheduleContent"></div>
         </div>
 
@@ -1028,6 +1079,72 @@
             
             renderSchedules();
             renderSubjects();
+        }
+
+        // Функції збереження та завантаження
+        function saveData() {
+            const data = {
+                classes: classes,
+                subjects: subjects,
+                schedules: schedules,
+                nextClassId: nextClassId,
+                nextSubjectId: nextSubjectId,
+                version: '1.0',
+                savedDate: new Date().toISOString()
+            };
+            
+            const jsonStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `rozklad_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('✅ Розклад успішно збережено!');
+        }
+
+        function loadData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    // Перевірка версії
+                    if (!data.version) {
+                        alert('⚠️ Файл не містить інформації про версію. Завантаження може працювати некоректно.');
+                    }
+                    
+                    // Завантаження даних
+                    classes = data.classes || [];
+                    subjects = data.subjects || [];
+                    schedules = data.schedules || {};
+                    nextClassId = data.nextClassId || 1;
+                    nextSubjectId = data.nextSubjectId || 1;
+                    
+                    // Оновлення інтерфейсу
+                    renderClasses();
+                    renderSubjects();
+                    renderSchedules();
+                    
+                    const savedDate = data.savedDate ? new Date(data.savedDate).toLocaleString('uk-UA') : 'невідома';
+                    alert(`✅ Розклад успішно завантажено!\nДата збереження: ${savedDate}`);
+                } catch (error) {
+                    alert('❌ Помилка при завантаженні файлу. Переконайтеся, що файл не пошкоджений.');
+                    console.error('Помилка завантаження:', error);
+                }
+            };
+            reader.readAsText(file);
+            
+            // Очищаємо input для можливості завантажити той самий файл знову
+            event.target.value = '';
         }
 
         renderClasses();
