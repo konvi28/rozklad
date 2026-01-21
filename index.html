@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Розклад уроків v 1.8</title>
+    <title>Розклад уроків v 1.9</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
@@ -471,12 +471,18 @@
             font-size: 12px;
             margin-bottom: 2px;
             text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 4px;
+            border-radius: 3px;
         }
 
         .lesson-card-teacher {
             font-size: 10px;
             opacity: 0.9;
             text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 4px;
+            border-radius: 3px;
         }
 
         .delete-lesson-btn {
@@ -682,6 +688,21 @@
             </div>
             <button class="btn btn-primary" onclick="addSubject()">Додати предмет</button>
             
+            <div id="subjectsStats" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; display: none;">
+                <h3 style="margin-bottom: 10px; color: #333; font-size: 16px;">📊 Статистика</h3>
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    <div>
+                        <strong>Кількість предметів:</strong> <span id="totalSubjects">0</span>
+                    </div>
+                    <div>
+                        <strong>Унікальних вчителів:</strong> <span id="totalTeachers">0</span>
+                    </div>
+                    <div>
+                        <strong>Сумарна кількість годин:</strong> <span id="totalHours">0</span>
+                    </div>
+                </div>
+            </div>
+            
             <div id="subjectList" class="subject-list"></div>
         </div>
 
@@ -689,8 +710,10 @@
             <div class="save-load-section">
                 <h3>💾 Збереження та завантаження</h3>
                 <button class="btn btn-success" onclick="saveData()">💾 Зберегти розклад (JSON)</button>
-                <button class="btn btn-info" onclick="document.getElementById('fileInput').click()">📂 Завантажити розклад</button>
+                <button class="btn btn-info" onclick="document.getElementById('fileInput').click()">📂 Завантажити розклад (JSON)</button>
                 <button class="btn btn-success" onclick="exportToExcel()">📊 Експорт в Excel</button>
+                <button class="btn btn-danger" onclick="clearDemoData()">🗑️ Видалити демо-дані</button>
+                <button class="btn btn-info" onclick="checkTeacherConflicts()">🔍 Перевірка на збіг</button>
                 <input type="file" id="fileInput" accept=".json" onchange="loadData(event)">
             </div>
             <div id="scheduleContent"></div>
@@ -873,11 +896,26 @@
 
         function renderSubjects() {
             const list = document.getElementById('subjectList');
+            const statsDiv = document.getElementById('subjectsStats');
             
             if (subjects.length === 0) {
                 list.innerHTML = '<p style="text-align: center; color: #6c757d; margin-top: 20px;">Немає доданих предметів</p>';
+                statsDiv.style.display = 'none';
                 return;
             }
+
+            // Показуємо та оновлюємо статистику
+            statsDiv.style.display = 'block';
+            
+            // Підраховуємо унікальних вчителів
+            const uniqueTeachers = new Set(subjects.map(s => s.teacher)).size;
+            
+            // Підраховуємо сумарну кількість годин
+            const totalHours = subjects.reduce((sum, s) => sum + s.hours, 0);
+            
+            document.getElementById('totalSubjects').textContent = subjects.length;
+            document.getElementById('totalTeachers').textContent = uniqueTeachers;
+            document.getElementById('totalHours').textContent = totalHours;
 
             list.innerHTML = subjects.map(subject => {
                 let usedCount = 0;
@@ -1398,6 +1436,22 @@
         }
 
         // Функції збереження та завантаження
+        function clearDemoData() {
+            if (confirm('Ви впевнені, що хочете видалити всі дані (класи, предмети, розклад)?')) {
+                classes = [];
+                subjects = [];
+                schedules = {};
+                nextClassId = 1;
+                nextSubjectId = 1;
+                
+                renderClasses();
+                renderSubjects();
+                renderSchedules();
+                
+                alert('✅ Всі дані успішно видалено!');
+            }
+        }
+
         function deleteLesson(classId, day, lesson, subjectId = null) {
             const key = `${day}-${lesson}`;
             
@@ -1500,6 +1554,63 @@
         }
 
         // Функція експорту в Excel
+        function checkTeacherConflicts() {
+            const conflicts = [];
+            
+            // Перевіряємо кожен день та урок
+            days.forEach((day, dayIndex) => {
+                for (let lessonNum = 0; lessonNum < lessons; lessonNum++) {
+                    const key = `${dayIndex}-${lessonNum}`;
+                    const teachersInThisSlot = {};
+                    
+                    // Збираємо інформацію про вчителів в цьому слоті
+                    classes.forEach(cls => {
+                        const lesson = schedules[cls.id][key];
+                        
+                        if (lesson) {
+                            // Обробляємо як одиночний урок, так і масив
+                            const lessons = Array.isArray(lesson) ? lesson : [lesson];
+                            
+                            lessons.forEach(les => {
+                                if (!teachersInThisSlot[les.teacher]) {
+                                    teachersInThisSlot[les.teacher] = [];
+                                }
+                                teachersInThisSlot[les.teacher].push({
+                                    className: cls.name,
+                                    subjectName: les.name
+                                });
+                            });
+                        }
+                    });
+                    
+                    // Перевіряємо чи є вчителі які ведуть урок у більш ніж одному класі
+                    Object.keys(teachersInThisSlot).forEach(teacher => {
+                        if (teachersInThisSlot[teacher].length > 1) {
+                            conflicts.push({
+                                day: day,
+                                lesson: lessonNum + 1,
+                                teacher: teacher,
+                                classes: teachersInThisSlot[teacher]
+                            });
+                        }
+                    });
+                }
+            });
+            
+            // Відображаємо результати
+            if (conflicts.length === 0) {
+                alert('✅ Збігів не виявлено! Розклад складено правильно.');
+            } else {
+                let message = '⚠️ Виявлено збіги:\n\n';
+                conflicts.forEach(conflict => {
+                    message += `${conflict.day}, Урок ${conflict.lesson}\n`;
+                    message += `Вчитель: ${conflict.teacher}\n`;
+                    message += `Класи: ${conflict.classes.map(c => `${c.className} (${c.subjectName})`).join(', ')}\n\n`;
+                });
+                alert(message);
+            }
+        }
+
         function exportToExcel() {
             if (classes.length === 0 || subjects.length === 0) {
                 alert('⚠️ Немає даних для експорту. Додайте класи та предмети.');
