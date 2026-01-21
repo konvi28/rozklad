@@ -16,39 +16,51 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
         }
 
         .container {
-            max-width: 1800px;
-            margin: 0 auto;
+            max-width: 100%;
+            height: 100vh;
+            margin: 0;
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border-radius: 0;
+            box-shadow: none;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 30px;
+            padding: 15px 30px;
             text-align: center;
+            flex-shrink: 0;
         }
 
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 0.9em;
+            margin: 0;
         }
 
         .tabs {
             display: flex;
             background: #f8f9fa;
             border-bottom: 2px solid #e9ecef;
+            flex-shrink: 0;
         }
 
         .tab {
             flex: 1;
-            padding: 20px;
+            padding: 12px 15px;
             text-align: center;
             cursor: pointer;
             font-weight: 600;
@@ -56,7 +68,7 @@
             transition: all 0.3s;
             border: none;
             background: none;
-            font-size: 16px;
+            font-size: 14px;
         }
 
         .tab:hover {
@@ -71,11 +83,14 @@
 
         .tab-content {
             display: none;
-            padding: 30px;
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
         }
 
         .tab-content.active {
-            display: block;
+            display: flex;
+            flex-direction: column;
         }
 
         .form-group {
@@ -137,9 +152,9 @@
         .btn-success {
             background: #28a745;
             color: white;
-            padding: 12px 30px;
-            font-size: 16px;
-            margin-right: 10px;
+            padding: 8px 15px;
+            font-size: 13px;
+            margin-right: 5px;
         }
 
         .btn-success:hover {
@@ -149,8 +164,8 @@
         .btn-info {
             background: #17a2b8;
             color: white;
-            padding: 12px 30px;
-            font-size: 16px;
+            padding: 8px 15px;
+            font-size: 13px;
         }
 
         .btn-info:hover {
@@ -158,21 +173,22 @@
         }
 
         .save-load-section {
-            margin-bottom: 30px;
-            padding: 20px;
+            margin-bottom: 10px;
+            padding: 10px;
             background: #f8f9fa;
-            border-radius: 12px;
+            border-radius: 8px;
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
             flex-wrap: wrap;
+            flex-shrink: 0;
         }
 
         .save-load-section h3 {
             width: 100%;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             color: #333;
-            font-size: 18px;
+            font-size: 14px;
         }
 
         #fileInput {
@@ -294,12 +310,12 @@
 
         .schedule-wrapper {
             overflow: auto;
-            margin-top: 20px;
-            max-height: 600px;
             border: 2px solid #e9ecef;
             border-radius: 12px;
             background: white;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            flex: 1;
+            min-height: 0;
         }
         
         .schedule-wrapper::-webkit-scrollbar {
@@ -331,19 +347,20 @@
         .schedule-table th {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 15px;
+            padding: 10px;
             text-align: center;
             font-weight: 600;
             border: 1px solid #000000;
             position: sticky;
             top: 0;
             z-index: 10;
+            font-size: 13px;
         }
         
         .schedule-table th:first-child {
             writing-mode: vertical-rl;
             text-orientation: mixed;
-            padding: 15px 5px;
+            padding: 10px 5px;
             width: 30px;
             min-width: 30px;
             max-width: 30px;
@@ -361,11 +378,11 @@
         }
 
         .schedule-table td {
-            padding: 10px;
+            padding: 5px;
             border: 1px solid #000000;
             text-align: center;
             vertical-align: middle;
-            min-height: 80px;
+            min-height: 60px;
         }
         
         .schedule-table td:first-child {
@@ -376,7 +393,7 @@
             font-weight: 600;
             writing-mode: vertical-rl;
             text-orientation: mixed;
-            padding: 15px 5px;
+            padding: 10px 5px;
             width: 30px;
             min-width: 30px;
             max-width: 30px;
@@ -419,7 +436,7 @@
         }
 
         .lesson-card {
-            padding: 10px;
+            padding: 6px 8px;
             border-radius: 8px;
             color: white;
             cursor: move;
@@ -439,13 +456,13 @@
 
         .lesson-card-subject {
             font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 4px;
+            font-size: 12px;
+            margin-bottom: 2px;
             text-shadow: 0 1px 3px rgba(0,0,0,0.4);
         }
 
         .lesson-card-teacher {
-            font-size: 12px;
+            font-size: 10px;
             opacity: 0.9;
             text-shadow: 0 1px 3px rgba(0,0,0,0.4);
         }
@@ -510,16 +527,17 @@
         }
 
         .available-tiles-section {
-            margin-bottom: 20px;
-            padding: 15px;
+            margin-bottom: 10px;
+            padding: 10px;
             background: #f8f9fa;
-            border-radius: 12px;
-            max-height: 400px;
+            border-radius: 8px;
+            max-height: 150px;
             overflow-y: auto;
+            flex-shrink: 0;
         }
         
         .available-tiles-section::-webkit-scrollbar {
-            width: 10px;
+            width: 8px;
         }
         
         .available-tiles-section::-webkit-scrollbar-track {
@@ -538,41 +556,48 @@
 
         .available-tiles-section h2 {
             color: #333;
-            margin-bottom: 12px;
-            font-size: 18px;
+            margin-bottom: 8px;
+            font-size: 14px;
         }
         
         .available-tiles-section .subject-item {
-            margin-bottom: 8px;
-            padding: 10px;
+            margin-bottom: 6px;
+            padding: 6px;
         }
         
         .available-tiles-section .subject-name {
-            font-size: 15px;
+            font-size: 13px;
         }
         
         .available-tiles-section .subject-teacher {
-            font-size: 12px;
+            font-size: 11px;
         }
         
         .available-tiles-section .tiles-container {
-            padding: 8px;
-            min-height: 40px;
+            padding: 5px;
+            min-height: 35px;
         }
 
         .schedules-container {
-            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
         }
 
         .class-schedule-section {
-            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
         }
 
         .class-schedule-title {
-            font-size: 24px;
+            font-size: 16px;
             font-weight: 600;
             color: #333;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
+            flex-shrink: 0;
         }
 
         .empty-state {
@@ -595,11 +620,12 @@
         .footer {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px;
+            padding: 10px 20px;
             text-align: center;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 600;
             letter-spacing: 0.5px;
+            flex-shrink: 0;
         }
     </style>
 </head>
