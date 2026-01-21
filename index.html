@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Розклад уроків v 1.91</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="icon" type="image/webp" href="logo.webp">
+    <link rel="shortcut icon" type="image/webp" href="logo.webp">
+    <link rel="apple-touch-icon" href="logo.webp">
+    <title>Розклад уроків 1.92</title>
     <style>
         * {
             margin: 0;
@@ -16,51 +18,39 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 0;
-            margin: 0;
-            overflow: hidden;
+            padding: 20px;
         }
 
         .container {
-            max-width: 100%;
-            height: 100vh;
-            margin: 0;
+            max-width: 1800px;
+            margin: 0 auto;
             background: white;
-            border-radius: 0;
-            box-shadow: none;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
         }
 
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 15px 30px;
+            padding: 30px;
             text-align: center;
-            flex-shrink: 0;
         }
 
         .header h1 {
-            font-size: 1.8em;
-            margin-bottom: 5px;
-        }
-
-        .header p {
-            font-size: 0.9em;
-            margin: 0;
+            font-size: 2.5em;
+            margin-bottom: 10px;
         }
 
         .tabs {
             display: flex;
             background: #f8f9fa;
             border-bottom: 2px solid #e9ecef;
-            flex-shrink: 0;
         }
 
         .tab {
             flex: 1;
-            padding: 12px 15px;
+            padding: 20px;
             text-align: center;
             cursor: pointer;
             font-weight: 600;
@@ -68,7 +58,7 @@
             transition: all 0.3s;
             border: none;
             background: none;
-            font-size: 14px;
+            font-size: 16px;
         }
 
         .tab:hover {
@@ -83,14 +73,11 @@
 
         .tab-content {
             display: none;
-            padding: 20px;
-            flex: 1;
-            overflow-y: auto;
+            padding: 30px;
         }
 
         .tab-content.active {
-            display: flex;
-            flex-direction: column;
+            display: block;
         }
 
         .form-group {
@@ -147,79 +134,6 @@
 
         .btn-danger:hover {
             background: #c82333;
-        }
-
-        .btn-hour-control {
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            width: 28px;
-            height: 28px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-            line-height: 1;
-        }
-
-        .btn-hour-control:hover {
-            background: #5568d3;
-            transform: scale(1.1);
-        }
-
-        .btn-hour-control:active {
-            transform: scale(0.95);
-        }
-
-        .btn-success {
-            background: #28a745;
-            color: white;
-            padding: 8px 15px;
-            font-size: 13px;
-            margin-right: 5px;
-        }
-
-        .btn-success:hover {
-            background: #218838;
-        }
-
-        .btn-info {
-            background: #17a2b8;
-            color: white;
-            padding: 8px 15px;
-            font-size: 13px;
-        }
-
-        .btn-info:hover {
-            background: #138496;
-        }
-
-        .save-load-section {
-            margin-bottom: 10px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-wrap: wrap;
-            flex-shrink: 0;
-        }
-
-        .save-load-section h3 {
-            width: 100%;
-            margin-bottom: 5px;
-            color: #333;
-            font-size: 14px;
-        }
-
-        #fileInput {
-            display: none;
         }
 
         .class-list {
@@ -317,7 +231,6 @@
             font-size: 12px;
             font-weight: 600;
             user-select: none;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.4);
         }
 
         .lesson-tile:hover {
@@ -337,12 +250,12 @@
 
         .schedule-wrapper {
             overflow: auto;
+            margin-top: 20px;
+            max-height: 600px;
             border: 2px solid #e9ecef;
             border-radius: 12px;
             background: white;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            flex: 1;
-            min-height: 0;
         }
         
         .schedule-wrapper::-webkit-scrollbar {
@@ -374,23 +287,13 @@
         .schedule-table th {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 10px;
+            padding: 15px;
             text-align: center;
             font-weight: 600;
-            border: 1px solid #000000;
+            border: 1px solid rgba(255,255,255,0.2);
             position: sticky;
             top: 0;
             z-index: 10;
-            font-size: 13px;
-        }
-        
-        .schedule-table th:first-child {
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-            padding: 10px 5px;
-            width: 30px;
-            min-width: 30px;
-            max-width: 30px;
         }
         
         .schedule-table th:first-child,
@@ -405,11 +308,11 @@
         }
 
         .schedule-table td {
-            padding: 5px;
-            border: 1px solid #000000;
+            padding: 10px;
+            border: 1px solid #e9ecef;
             text-align: center;
             vertical-align: middle;
-            min-height: 60px;
+            min-height: 80px;
         }
         
         .schedule-table td:first-child {
@@ -418,12 +321,6 @@
             background: #e9ecef;
             z-index: 5;
             font-weight: 600;
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-            padding: 10px 5px;
-            width: 30px;
-            min-width: 30px;
-            max-width: 30px;
         }
         
         .schedule-table td.lesson-number {
@@ -463,7 +360,7 @@
         }
 
         .lesson-card {
-            padding: 6px 8px;
+            padding: 10px;
             border-radius: 8px;
             color: white;
             cursor: move;
@@ -477,172 +374,46 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
-        .lesson-card.drag-over {
-            box-shadow: 0 0 0 3px #667eea;
-        }
-
-        .multiple-lessons.drag-over {
-            box-shadow: 0 0 0 3px #667eea;
-        }
-
-        .schedule-table td.drag-over {
-            background: #e7f3ff !important;
-        }
-
         .lesson-card.dragging {
             opacity: 0.5;
         }
 
         .lesson-card-subject {
             font-weight: 600;
-            font-size: 12px;
-            margin-bottom: 2px;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.4);
-            background: rgba(0, 0, 0, 0.3);
-            padding: 2px 4px;
-            border-radius: 3px;
+            font-size: 14px;
+            margin-bottom: 4px;
         }
 
         .lesson-card-teacher {
-            font-size: 10px;
+            font-size: 12px;
             opacity: 0.9;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.4);
-            background: rgba(0, 0, 0, 0.3);
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-
-        .delete-lesson-btn {
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            background: rgba(255, 255, 255, 0.9);
-            color: #dc3545;
-            border: none;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-            line-height: 1;
-            transition: all 0.2s;
-            opacity: 0.7;
-        }
-
-        .delete-lesson-btn:hover {
-            background: #dc3545;
-            color: white;
-            opacity: 1;
-            transform: scale(1.1);
-        }
-
-        .lesson-card:hover .delete-lesson-btn {
-            opacity: 1;
-        }
-
-        .multiple-lessons {
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-        }
-
-        .lesson-card-split {
-            padding: 6px 8px;
-            font-size: 12px;
-        }
-
-        .lesson-card-split .lesson-card-subject {
-            font-size: 12px;
-            margin-bottom: 2px;
-        }
-
-        .lesson-card-split .lesson-card-teacher {
-            font-size: 10px;
-        }
-
-        .lesson-card-split .delete-lesson-btn {
-            width: 18px;
-            height: 18px;
-            font-size: 14px;
         }
 
         .available-tiles-section {
-            margin-bottom: 10px;
-            padding: 10px;
+            margin-bottom: 30px;
+            padding: 20px;
             background: #f8f9fa;
-            border-radius: 8px;
-            max-height: 150px;
-            overflow-y: auto;
-            flex-shrink: 0;
-        }
-        
-        .available-tiles-section::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .available-tiles-section::-webkit-scrollbar-track {
-            background: #e9ecef;
-            border-radius: 10px;
-        }
-        
-        .available-tiles-section::-webkit-scrollbar-thumb {
-            background: #667eea;
-            border-radius: 10px;
-        }
-        
-        .available-tiles-section::-webkit-scrollbar-thumb:hover {
-            background: #5568d3;
+            border-radius: 12px;
         }
 
         .available-tiles-section h2 {
             color: #333;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        
-        .available-tiles-section .subject-item {
-            margin-bottom: 6px;
-            padding: 6px;
-        }
-        
-        .available-tiles-section .subject-name {
-            font-size: 13px;
-        }
-        
-        .available-tiles-section .subject-teacher {
-            font-size: 11px;
-        }
-        
-        .available-tiles-section .tiles-container {
-            padding: 5px;
-            min-height: 35px;
+            margin-bottom: 20px;
         }
 
         .schedules-container {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            min-height: 0;
+            margin-top: 20px;
         }
 
         .class-schedule-section {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            min-height: 0;
+            margin-bottom: 30px;
         }
 
         .class-schedule-title {
-            font-size: 16px;
+            font-size: 24px;
             font-weight: 600;
             color: #333;
-            margin-bottom: 8px;
-            flex-shrink: 0;
+            margin-bottom: 15px;
         }
 
         .empty-state {
@@ -660,17 +431,6 @@
             font-size: 24px;
             margin-bottom: 10px;
             color: #495057;
-        }
-
-        .footer {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 10px 20px;
-            text-align: center;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            flex-shrink: 0;
         }
     </style>
 </head>
@@ -715,39 +475,11 @@
             </div>
             <button class="btn btn-primary" onclick="addSubject()">Додати предмет</button>
             
-            <div id="subjectsStats" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; display: none;">
-                <h3 style="margin-bottom: 10px; color: #333; font-size: 16px;">📊 Статистика</h3>
-                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                    <div>
-                        <strong>Кількість предметів:</strong> <span id="totalSubjects">0</span>
-                    </div>
-                    <div>
-                        <strong>Унікальних вчителів:</strong> <span id="totalTeachers">0</span>
-                    </div>
-                    <div>
-                        <strong>Сумарна кількість годин:</strong> <span id="totalHours">0</span>
-                    </div>
-                </div>
-            </div>
-            
             <div id="subjectList" class="subject-list"></div>
         </div>
 
         <div id="scheduleTab" class="tab-content">
-            <div class="save-load-section">
-                <h3>💾 Збереження та завантаження</h3>
-                <button class="btn btn-success" onclick="saveData()">💾 Зберегти розклад (JSON)</button>
-                <button class="btn btn-info" onclick="document.getElementById('fileInput').click()">📂 Завантажити розклад (JSON)</button>
-                <button class="btn btn-success" onclick="exportToExcel()">📊 Експорт в Excel</button>
-                <button class="btn btn-danger" onclick="clearDemoData()">🗑️ Видалити демо-дані</button>
-                <button class="btn btn-info" onclick="checkTeacherConflicts()">🔍 Перевірка на збіг</button>
-                <input type="file" id="fileInput" accept=".json" onchange="loadData(event)">
-            </div>
             <div id="scheduleContent"></div>
-        </div>
-
-        <div class="footer">
-            Розробник Obariv by Krasovskiy
         </div>
     </div>
 
@@ -755,61 +487,11 @@
         const days = ['Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П\'ятниця'];
         const lessons = 7;
         
-        let classes = [
-            { id: 1, name: '5-А' },
-            { id: 2, name: '6-Б' },
-            { id: 3, name: '7-В' }
-        ];
-        
-        let subjects = [
-            { id: 1, name: 'Математика', teacher: 'Іваненко О.П.', hours: 5 },
-            { id: 2, name: 'Українська мова', teacher: 'Петренко М.І.', hours: 4 },
-            { id: 3, name: 'Англійська мова', teacher: 'Сидоренко Л.В.', hours: 3 },
-            { id: 4, name: 'Історія України', teacher: 'Коваленко В.С.', hours: 2 },
-            { id: 5, name: 'Фізика', teacher: 'Шевченко Д.М.', hours: 3 },
-            { id: 6, name: 'Біологія', teacher: 'Мельник Т.А.', hours: 2 },
-            { id: 7, name: 'Географія', teacher: 'Бойко Н.В.', hours: 2 },
-            { id: 8, name: 'Фізкультура', teacher: 'Кравченко І.О.', hours: 3 }
-        ];
-        
-        let schedules = {
-            1: {
-                '0-0': { subjectId: 1, name: 'Математика', teacher: 'Іваненко О.П.' },
-                '0-1': { subjectId: 2, name: 'Українська мова', teacher: 'Петренко М.І.' },
-                '0-2': { subjectId: 3, name: 'Англійська мова', teacher: 'Сидоренко Л.В.' },
-                '1-0': { subjectId: 1, name: 'Математика', teacher: 'Іваненко О.П.' },
-                '1-1': { subjectId: 4, name: 'Історія України', teacher: 'Коваленко В.С.' },
-                '1-2': { subjectId: 8, name: 'Фізкультура', teacher: 'Кравченко І.О.' },
-                '2-0': { subjectId: 5, name: 'Фізика', teacher: 'Шевченко Д.М.' },
-                '2-1': { subjectId: 1, name: 'Математика', teacher: 'Іваненко О.П.' },
-                '2-2': { subjectId: 2, name: 'Українська мова', teacher: 'Петренко М.І.' }
-            },
-            2: {
-                '0-0': { subjectId: 2, name: 'Українська мова', teacher: 'Петренко М.І.' },
-                '0-1': { subjectId: 1, name: 'Математика', teacher: 'Іваненко О.П.' },
-                '0-2': { subjectId: 6, name: 'Біологія', teacher: 'Мельник Т.А.' },
-                '1-0': { subjectId: 3, name: 'Англійська мова', teacher: 'Сидоренко Л.В.' },
-                '1-1': { subjectId: 1, name: 'Математика', teacher: 'Іваненко О.П.' },
-                '1-2': { subjectId: 7, name: 'Географія', teacher: 'Бойко Н.В.' },
-                '2-0': { subjectId: 8, name: 'Фізкультура', teacher: 'Кравченко І.О.' },
-                '2-1': { subjectId: 5, name: 'Фізика', teacher: 'Шевченко Д.М.' },
-                '2-2': { subjectId: 2, name: 'Українська мова', teacher: 'Петренко М.І.' }
-            },
-            3: {
-                '0-0': { subjectId: 5, name: 'Фізика', teacher: 'Шевченко Д.М.' },
-                '0-1': { subjectId: 3, name: 'Англійська мова', teacher: 'Сидоренко Л.В.' },
-                '0-2': { subjectId: 1, name: 'Математика', teacher: 'Іваненко О.П.' },
-                '1-0': { subjectId: 2, name: 'Українська мова', teacher: 'Петренко М.І.' },
-                '1-1': { subjectId: 6, name: 'Біологія', teacher: 'Мельник Т.А.' },
-                '1-2': { subjectId: 4, name: 'Історія України', teacher: 'Коваленко В.С.' },
-                '2-0': { subjectId: 1, name: 'Математика', teacher: 'Іваненко О.П.' },
-                '2-1': { subjectId: 8, name: 'Фізкультура', teacher: 'Кравченко І.О.' },
-                '2-2': { subjectId: 7, name: 'Географія', teacher: 'Бойко Н.В.' }
-            }
-        };
-        
-        let nextClassId = 4;
-        let nextSubjectId = 9;
+        let classes = [];
+        let subjects = [];
+        let schedules = {};
+        let nextClassId = 1;
+        let nextSubjectId = 1;
 
         const subjectColors = [
             '#667eea', '#f093fb', '#4facfe', '#43e97b',
@@ -923,38 +605,17 @@
 
         function renderSubjects() {
             const list = document.getElementById('subjectList');
-            const statsDiv = document.getElementById('subjectsStats');
             
             if (subjects.length === 0) {
                 list.innerHTML = '<p style="text-align: center; color: #6c757d; margin-top: 20px;">Немає доданих предметів</p>';
-                statsDiv.style.display = 'none';
                 return;
             }
-
-            // Показуємо та оновлюємо статистику
-            statsDiv.style.display = 'block';
-            
-            // Підраховуємо унікальних вчителів
-            const uniqueTeachers = new Set(subjects.map(s => s.teacher)).size;
-            
-            // Підраховуємо сумарну кількість годин
-            const totalHours = subjects.reduce((sum, s) => sum + s.hours, 0);
-            
-            document.getElementById('totalSubjects').textContent = subjects.length;
-            document.getElementById('totalTeachers').textContent = uniqueTeachers;
-            document.getElementById('totalHours').textContent = totalHours;
 
             list.innerHTML = subjects.map(subject => {
                 let usedCount = 0;
                 classes.forEach(cls => {
                     const schedule = schedules[cls.id] || {};
-                    Object.values(schedule).forEach(slot => {
-                        if (Array.isArray(slot)) {
-                            usedCount += slot.filter(s => s.subjectId === subject.id).length;
-                        } else if (slot && slot.subjectId === subject.id) {
-                            usedCount++;
-                        }
-                    });
+                    usedCount += Object.values(schedule).filter(s => s && s.subjectId === subject.id).length;
                 });
 
                 const color = getSubjectColor(subject.id);
@@ -1027,49 +688,37 @@
                 let usedCount = 0;
                 classes.forEach(cls => {
                     const schedule = schedules[cls.id] || {};
-                    Object.values(schedule).forEach(slot => {
-                        if (Array.isArray(slot)) {
-                            usedCount += slot.filter(s => s.subjectId === subject.id).length;
-                        } else if (slot && slot.subjectId === subject.id) {
-                            usedCount++;
-                        }
-                    });
+                    usedCount += Object.values(schedule).filter(s => s && s.subjectId === subject.id).length;
                 });
                 
                 const availableCount = subject.hours - usedCount;
-                const color = getSubjectColor(subject.id);
                 
-                tilesHtml += `
-                    <div class="subject-item" style="margin-bottom: 15px;">
-                        <div class="subject-header">
-                            <div class="subject-info">
-                                <div class="subject-name">${subject.name}</div>
-                                <div class="subject-teacher">Вчитель: ${subject.teacher} • Доступно: ${availableCount} з ${subject.hours}</div>
-                            </div>
-                            <div style="display: flex; gap: 5px; align-items: center;">
-                                <button class="btn-hour-control" onclick="changeSubjectHours(${subject.id}, -1); event.stopPropagation();" title="Зменшити кількість годин">−</button>
-                                <button class="btn-hour-control" onclick="changeSubjectHours(${subject.id}, 1); event.stopPropagation();" title="Збільшити кількість годин">+</button>
-                            </div>
-                        </div>
-                        <div class="tiles-container" data-subject-id="${subject.id}">
-                `;
-                
-                for (let i = 0; i < availableCount; i++) {
+                if (availableCount > 0) {
+                    const color = getSubjectColor(subject.id);
                     tilesHtml += `
-                        <div class="lesson-tile" 
-                             draggable="true"
-                             data-subject-id="${subject.id}"
-                             style="background: ${color};">
-                            ${subject.name}
-                        </div>
+                        <div class="subject-item" style="margin-bottom: 15px;">
+                            <div class="subject-header">
+                                <div class="subject-info">
+                                    <div class="subject-name">${subject.name}</div>
+                                    <div class="subject-teacher">Вчитель: ${subject.teacher} • Доступно: ${availableCount} з ${subject.hours}</div>
+                                </div>
+                            </div>
+                            <div class="tiles-container" data-subject-id="${subject.id}">
                     `;
+                    
+                    for (let i = 0; i < availableCount; i++) {
+                        tilesHtml += `
+                            <div class="lesson-tile" 
+                                 draggable="true"
+                                 data-subject-id="${subject.id}"
+                                 style="background: ${color};">
+                                ${subject.name}
+                            </div>
+                        `;
+                    }
+                    
+                    tilesHtml += '</div></div>';
                 }
-                
-                if (availableCount === 0) {
-                    tilesHtml += `<div style="color: #6c757d; font-size: 12px; padding: 5px;">Всі уроки розміщені в розкладі</div>`;
-                }
-                
-                tilesHtml += '</div></div>';
             });
             
             tilesHtml += '</div>';
@@ -1109,43 +758,19 @@
                         schedulesHtml += `<td>`;
                         
                         if (lesson) {
-                            // Перевіряємо чи це масив уроків (підгрупи)
-                            if (Array.isArray(lesson)) {
-                                schedulesHtml += `<div class="multiple-lessons">`;
-                                lesson.forEach((les, idx) => {
-                                    const color = getSubjectColor(les.subjectId);
-                                    schedulesHtml += `
-                                        <div class="lesson-card lesson-card-split" draggable="true" 
-                                             data-subject-id="${les.subjectId}"
-                                             data-from-schedule="true"
-                                             data-class-id="${cls.id}"
-                                             data-day="${dayIndex}"
-                                             data-lesson="${i-1}"
-                                             style="background: ${color}; position: relative; margin-bottom: ${idx < lesson.length - 1 ? '4px' : '0'};">
-                                            <button class="delete-lesson-btn" onclick="deleteLesson(${cls.id}, ${dayIndex}, ${i-1}, ${les.subjectId}); event.stopPropagation();" title="Видалити урок">×</button>
-                                            <div class="lesson-card-subject">${les.name}</div>
-                                            <div class="lesson-card-teacher">${les.teacher}</div>
-                                        </div>
-                                    `;
-                                });
-                                schedulesHtml += `</div>`;
-                            } else {
-                                // Один урок
-                                const color = getSubjectColor(lesson.subjectId);
-                                schedulesHtml += `
-                                    <div class="lesson-card" draggable="true" 
-                                         data-subject-id="${lesson.subjectId}"
-                                         data-from-schedule="true"
-                                         data-class-id="${cls.id}"
-                                         data-day="${dayIndex}"
-                                         data-lesson="${i-1}"
-                                         style="background: ${color}; position: relative;">
-                                        <button class="delete-lesson-btn" onclick="deleteLesson(${cls.id}, ${dayIndex}, ${i-1}); event.stopPropagation();" title="Видалити урок">×</button>
-                                        <div class="lesson-card-subject">${lesson.name}</div>
-                                        <div class="lesson-card-teacher">${lesson.teacher}</div>
-                                    </div>
-                                `;
-                            }
+                            const color = getSubjectColor(lesson.subjectId);
+                            schedulesHtml += `
+                                <div class="lesson-card" draggable="true" 
+                                     data-subject-id="${lesson.subjectId}"
+                                     data-from-schedule="true"
+                                     data-class-id="${cls.id}"
+                                     data-day="${dayIndex}"
+                                     data-lesson="${i-1}"
+                                     style="background: ${color};">
+                                    <div class="lesson-card-subject">${lesson.name}</div>
+                                    <div class="lesson-card-teacher">${lesson.teacher}</div>
+                                </div>
+                            `;
                         } else {
                             schedulesHtml += `
                                 <div class="lesson-slot" 
@@ -1218,17 +843,6 @@
                 slot.addEventListener('drop', handleSlotDrop);
             });
 
-            // Додаємо обробники до всіх td в таблиці розкладу (крім перших двох колонок)
-            const scheduleTds = document.querySelectorAll('.schedule-table tbody td:not(.lesson-number):not(:first-child)');
-            scheduleTds.forEach(td => {
-                // Пропускаємо td з lesson-slot (вони вже оброблені)
-                if (td.querySelector('.lesson-slot')) return;
-                
-                td.addEventListener('dragover', handleTdDragOver);
-                td.addEventListener('dragleave', handleTdDragLeave);
-                td.addEventListener('drop', handleTdDrop);
-            });
-
             // Додаємо обробники для контейнерів плиток
             const containers = document.querySelectorAll('.tiles-container');
             containers.forEach(container => {
@@ -1278,106 +892,6 @@
             e.currentTarget.classList.remove('drag-over');
         }
 
-        function handleTdDragOver(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const lessonCard = e.currentTarget.querySelector('.lesson-card, .multiple-lessons');
-            if (lessonCard) {
-                lessonCard.classList.add('drag-over');
-            }
-            e.dataTransfer.dropEffect = 'move';
-        }
-
-        function handleTdDragLeave(e) {
-            e.stopPropagation();
-            const lessonCard = e.currentTarget.querySelector('.lesson-card, .multiple-lessons');
-            if (lessonCard) {
-                lessonCard.classList.remove('drag-over');
-            }
-        }
-
-        function handleTdDrop(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const td = e.currentTarget;
-            const lessonCard = td.querySelector('.lesson-card, .multiple-lessons');
-            if (lessonCard) {
-                lessonCard.classList.remove('drag-over');
-            }
-            
-            // Отримуємо дані з першого lesson-card в td
-            const firstCard = td.querySelector('.lesson-card');
-            if (!firstCard) return;
-            
-            const classId = parseInt(firstCard.dataset.classId);
-            const day = firstCard.dataset.day;
-            const lesson = firstCard.dataset.lesson;
-            const key = `${day}-${lesson}`;
-            
-            const schedule = schedules[classId];
-            
-            // Зберігаємо позицію прокрутки
-            const scheduleWrapper = document.querySelector('.schedule-wrapper');
-            const scrollTop = scheduleWrapper ? scheduleWrapper.scrollTop : 0;
-            const scrollLeft = scheduleWrapper ? scheduleWrapper.scrollLeft : 0;
-            
-            // Якщо переміщуємо з розкладу
-            if (fromSchedule && originalSlot) {
-                const oldKey = `${originalSlot.day}-${originalSlot.lesson}`;
-                const oldLessons = schedules[originalSlot.classId][oldKey];
-                
-                if (Array.isArray(oldLessons)) {
-                    // Видаляємо конкретний урок з масиву
-                    schedules[originalSlot.classId][oldKey] = oldLessons.filter(l => l.subjectId !== draggedSubjectId);
-                    if (schedules[originalSlot.classId][oldKey].length === 0) {
-                        delete schedules[originalSlot.classId][oldKey];
-                    }
-                } else if (oldLessons && oldLessons.subjectId === draggedSubjectId) {
-                    delete schedules[originalSlot.classId][oldKey];
-                }
-            }
-            
-            // Додаємо урок до нового слоту
-            const subject = subjects.find(s => s.id === draggedSubjectId);
-            const newLesson = {
-                subjectId: subject.id,
-                name: subject.name,
-                teacher: subject.teacher
-            };
-            
-            // Якщо в слоті вже є урок(и), додаємо до масиву
-            if (schedule[key]) {
-                if (Array.isArray(schedule[key])) {
-                    // Перевіряємо чи такий урок вже не доданий
-                    const exists = schedule[key].some(l => l.subjectId === subject.id);
-                    if (!exists) {
-                        schedule[key].push(newLesson);
-                    }
-                } else {
-                    // Перетворюємо в масив
-                    const existingLesson = schedule[key];
-                    if (existingLesson.subjectId !== subject.id) {
-                        schedule[key] = [existingLesson, newLesson];
-                    }
-                }
-            } else {
-                schedule[key] = newLesson;
-            }
-            
-            renderSchedules();
-            renderSubjects();
-            
-            // Відновлюємо позицію прокрутки після рендерингу
-            setTimeout(() => {
-                const newScheduleWrapper = document.querySelector('.schedule-wrapper');
-                if (newScheduleWrapper) {
-                    newScheduleWrapper.scrollTop = scrollTop;
-                    newScheduleWrapper.scrollLeft = scrollLeft;
-                }
-            }, 0);
-        }
-
         function handleSlotDrop(e) {
             e.preventDefault();
             e.currentTarget.classList.remove('drag-over');
@@ -1390,70 +904,30 @@
             
             const schedule = schedules[classId];
             
-            // Зберігаємо позицію прокрутки
-            const scheduleWrapper = document.querySelector('.schedule-wrapper');
-            const scrollTop = scheduleWrapper ? scheduleWrapper.scrollTop : 0;
-            const scrollLeft = scheduleWrapper ? scheduleWrapper.scrollLeft : 0;
-            
             // Якщо переміщуємо з розкладу
             if (fromSchedule && originalSlot) {
                 const oldKey = `${originalSlot.day}-${originalSlot.lesson}`;
-                const oldLessons = schedules[originalSlot.classId][oldKey];
-                
-                if (Array.isArray(oldLessons)) {
-                    // Видаляємо конкретний урок з масиву
-                    schedules[originalSlot.classId][oldKey] = oldLessons.filter(l => l.subjectId !== draggedSubjectId);
-                    if (schedules[originalSlot.classId][oldKey].length === 0) {
-                        delete schedules[originalSlot.classId][oldKey];
-                    }
-                } else if (oldLessons && oldLessons.subjectId === draggedSubjectId) {
-                    delete schedules[originalSlot.classId][oldKey];
-                }
+                delete schedules[originalSlot.classId][oldKey];
             }
             
             // Додаємо урок до нового слоту
             const subject = subjects.find(s => s.id === draggedSubjectId);
-            const newLesson = {
+            schedule[key] = {
                 subjectId: subject.id,
                 name: subject.name,
                 teacher: subject.teacher
             };
             
-            // Якщо в слоті вже є урок(и), додаємо до масиву
-            if (schedule[key]) {
-                if (Array.isArray(schedule[key])) {
-                    // Перевіряємо чи такий урок вже не доданий
-                    const exists = schedule[key].some(l => l.subjectId === subject.id);
-                    if (!exists) {
-                        schedule[key].push(newLesson);
-                    }
-                } else {
-                    // Перетворюємо в масив
-                    const existingLesson = schedule[key];
-                    if (existingLesson.subjectId !== subject.id) {
-                        schedule[key] = [existingLesson, newLesson];
-                    }
-                }
-            } else {
-                schedule[key] = newLesson;
-            }
-            
             renderSchedules();
             renderSubjects();
-            
-            // Відновлюємо позицію прокрутки після рендерингу
-            setTimeout(() => {
-                const newScheduleWrapper = document.querySelector('.schedule-wrapper');
-                if (newScheduleWrapper) {
-                    newScheduleWrapper.scrollTop = scrollTop;
-                    newScheduleWrapper.scrollLeft = scrollLeft;
-                }
-            }, 0);
         }
 
         function handleContainerDragOver(e) {
-            // Забороняємо перетягування в контейнери
-            e.dataTransfer.dropEffect = 'none';
+            if (fromSchedule) {
+                e.preventDefault();
+                e.currentTarget.classList.add('drag-over');
+                e.dataTransfer.dropEffect = 'move';
+            }
         }
 
         function handleContainerDragLeave(e) {
@@ -1461,470 +935,22 @@
         }
 
         function handleContainerDrop(e) {
-            // Забороняємо drop в контейнери
+            if (!fromSchedule) return;
+            
             e.preventDefault();
-            return false;
-        }
-
-        // Функції збереження та завантаження
-        function changeSubjectHours(subjectId, change) {
-            const subject = subjects.find(s => s.id === subjectId);
-            if (!subject) return;
+            e.currentTarget.classList.remove('drag-over');
             
-            const newHours = subject.hours + change;
-            
-            // Перевіряємо мінімальну кількість
-            if (newHours < 1) {
-                alert('⚠️ Кількість годин не може бути менше 1');
-                return;
+            // Видаляємо урок з розкладу
+            if (originalSlot) {
+                const oldKey = `${originalSlot.day}-${originalSlot.lesson}`;
+                delete schedules[originalSlot.classId][oldKey];
             }
             
-            // Підраховуємо скільки годин вже використано
-            let usedCount = 0;
-            classes.forEach(cls => {
-                const schedule = schedules[cls.id] || {};
-                Object.values(schedule).forEach(slot => {
-                    if (Array.isArray(slot)) {
-                        usedCount += slot.filter(s => s.subjectId === subject.id).length;
-                    } else if (slot && slot.subjectId === subject.id) {
-                        usedCount++;
-                    }
-                });
-            });
-            
-            // Перевіряємо чи нова кількість не менша за використану
-            if (newHours < usedCount) {
-                alert(`⚠️ Неможливо зменшити кількість годин до ${newHours}, оскільки вже використано ${usedCount} годин в розкладі. Спочатку видаліть деякі уроки з розкладу.`);
-                return;
-            }
-            
-            // Оновлюємо кількість годин
-            subject.hours = newHours;
-            
-            // Зберігаємо позицію прокрутки
-            const scheduleWrapper = document.querySelector('.schedule-wrapper');
-            const scrollTop = scheduleWrapper ? scheduleWrapper.scrollTop : 0;
-            const scrollLeft = scheduleWrapper ? scheduleWrapper.scrollLeft : 0;
-            
-            renderSubjects();
             renderSchedules();
-            
-            // Відновлюємо позицію прокрутки
-            setTimeout(() => {
-                const newScheduleWrapper = document.querySelector('.schedule-wrapper');
-                if (newScheduleWrapper) {
-                    newScheduleWrapper.scrollTop = scrollTop;
-                    newScheduleWrapper.scrollLeft = scrollLeft;
-                }
-            }, 0);
-        }
-
-        function clearDemoData() {
-            if (confirm('Ви впевнені, що хочете видалити всі дані (класи, предмети, розклад)?')) {
-                classes = [];
-                subjects = [];
-                schedules = {};
-                nextClassId = 1;
-                nextSubjectId = 1;
-                
-                renderClasses();
-                renderSubjects();
-                renderSchedules();
-                
-                alert('✅ Всі дані успішно видалено!');
-            }
-        }
-
-        function deleteLesson(classId, day, lesson, subjectId = null) {
-            const key = `${day}-${lesson}`;
-            
-            if (schedules[classId] && schedules[classId][key]) {
-                // Зберігаємо позицію прокрутки
-                const scheduleWrapper = document.querySelector('.schedule-wrapper');
-                const scrollTop = scheduleWrapper ? scheduleWrapper.scrollTop : 0;
-                const scrollLeft = scheduleWrapper ? scheduleWrapper.scrollLeft : 0;
-                
-                const slot = schedules[classId][key];
-                
-                // Якщо це масив уроків і вказано subjectId
-                if (Array.isArray(slot) && subjectId !== null) {
-                    schedules[classId][key] = slot.filter(l => l.subjectId !== subjectId);
-                    if (schedules[classId][key].length === 0) {
-                        delete schedules[classId][key];
-                    }
-                } else {
-                    // Видаляємо весь слот
-                    delete schedules[classId][key];
-                }
-                
-                renderSchedules();
-                renderSubjects();
-                
-                // Відновлюємо позицію прокрутки після рендерингу
-                setTimeout(() => {
-                    const newScheduleWrapper = document.querySelector('.schedule-wrapper');
-                    if (newScheduleWrapper) {
-                        newScheduleWrapper.scrollTop = scrollTop;
-                        newScheduleWrapper.scrollLeft = scrollLeft;
-                    }
-                }, 0);
-            }
-        }
-
-        function saveData() {
-            const data = {
-                classes: classes,
-                subjects: subjects,
-                schedules: schedules,
-                nextClassId: nextClassId,
-                nextSubjectId: nextSubjectId,
-                version: '1.0',
-                savedDate: new Date().toISOString()
-            };
-            
-            const jsonStr = JSON.stringify(data, null, 2);
-            const blob = new Blob([jsonStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `rozklad_${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            alert('✅ Розклад успішно збережено!');
-        }
-
-        function loadData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    
-                    // Перевірка версії
-                    if (!data.version) {
-                        alert('⚠️ Файл не містить інформації про версію. Завантаження може працювати некоректно.');
-                    }
-                    
-                    // Завантаження даних
-                    classes = data.classes || [];
-                    subjects = data.subjects || [];
-                    schedules = data.schedules || {};
-                    nextClassId = data.nextClassId || 1;
-                    nextSubjectId = data.nextSubjectId || 1;
-                    
-                    // Оновлення інтерфейсу
-                    renderClasses();
-                    renderSubjects();
-                    renderSchedules();
-                    
-                    const savedDate = data.savedDate ? new Date(data.savedDate).toLocaleString('uk-UA') : 'невідома';
-                    alert(`✅ Розклад успішно завантажено!\nДата збереження: ${savedDate}`);
-                } catch (error) {
-                    alert('❌ Помилка при завантаженні файлу. Переконайтеся, що файл не пошкоджений.');
-                    console.error('Помилка завантаження:', error);
-                }
-            };
-            reader.readAsText(file);
-            
-            // Очищаємо input для можливості завантажити той самий файл знову
-            event.target.value = '';
-        }
-
-        // Функція експорту в Excel
-        function checkTeacherConflicts() {
-            const conflicts = [];
-            
-            // Перевіряємо кожен день та урок
-            days.forEach((day, dayIndex) => {
-                for (let lessonNum = 0; lessonNum < lessons; lessonNum++) {
-                    const key = `${dayIndex}-${lessonNum}`;
-                    const teachersInThisSlot = {};
-                    
-                    // Збираємо інформацію про вчителів в цьому слоті
-                    classes.forEach(cls => {
-                        const lesson = schedules[cls.id][key];
-                        
-                        if (lesson) {
-                            // Обробляємо як одиночний урок, так і масив
-                            const lessons = Array.isArray(lesson) ? lesson : [lesson];
-                            
-                            lessons.forEach(les => {
-                                if (!teachersInThisSlot[les.teacher]) {
-                                    teachersInThisSlot[les.teacher] = [];
-                                }
-                                teachersInThisSlot[les.teacher].push({
-                                    className: cls.name,
-                                    subjectName: les.name
-                                });
-                            });
-                        }
-                    });
-                    
-                    // Перевіряємо чи є вчителі які ведуть урок у більш ніж одному класі
-                    Object.keys(teachersInThisSlot).forEach(teacher => {
-                        if (teachersInThisSlot[teacher].length > 1) {
-                            conflicts.push({
-                                day: day,
-                                lesson: lessonNum + 1,
-                                teacher: teacher,
-                                classes: teachersInThisSlot[teacher]
-                            });
-                        }
-                    });
-                }
-            });
-            
-            // Відображаємо результати
-            if (conflicts.length === 0) {
-                alert('✅ Збігів не виявлено! Розклад складено правильно.');
-            } else {
-                let message = '⚠️ Виявлено збіги:\n\n';
-                conflicts.forEach(conflict => {
-                    message += `${conflict.day}, Урок ${conflict.lesson}\n`;
-                    message += `Вчитель: ${conflict.teacher}\n`;
-                    message += `Класи: ${conflict.classes.map(c => `${c.className} (${c.subjectName})`).join(', ')}\n\n`;
-                });
-                alert(message);
-            }
-        }
-
-        function exportToExcel() {
-            if (classes.length === 0 || subjects.length === 0) {
-                alert('⚠️ Немає даних для експорту. Додайте класи та предмети.');
-                return;
-            }
-
-            // Перевіряємо чи завантажена бібліотека SheetJS
-            if (typeof XLSX === 'undefined') {
-                alert('⏳ Завантаження бібліотеки Excel... Спробуйте ще раз через секунду.');
-                return;
-            }
-
-            try {
-                // Створюємо workbook
-                const wb = XLSX.utils.book_new();
-
-                // Створюємо головну таблицю - точна копія таблиці розкладу
-                const data = [];
-                
-                // Заголовок
-                const headerRow = ['День', 'Урок'];
-                classes.forEach(cls => headerRow.push(cls.name));
-                data.push(headerRow);
-
-                // Заповнюємо дані по днях та урокам
-                days.forEach((day, dayIndex) => {
-                    for (let i = 1; i <= lessons; i++) {
-                        const row = [];
-                        
-                        // Додаємо день тільки для першого уроку
-                        if (i === 1) {
-                            row.push(day);
-                        } else {
-                            row.push(''); // Порожня клітинка для об'єднання
-                        }
-                        
-                        // Номер уроку
-                        row.push(i);
-                        
-                        // Для кожного класу
-                        classes.forEach(cls => {
-                            const key = `${dayIndex}-${i-1}`;
-                            const lesson = schedules[cls.id][key];
-                            
-                            if (lesson) {
-                                // Перевіряємо чи це масив уроків (підгрупи)
-                                if (Array.isArray(lesson)) {
-                                    // Об'єднуємо всі уроки в одну клітинку
-                                    const lessonsText = lesson.map(l => `${l.name}\n(${l.teacher})`).join('\n---\n');
-                                    row.push(lessonsText);
-                                } else {
-                                    // Один урок
-                                    row.push(`${lesson.name}\n(${lesson.teacher})`);
-                                }
-                            } else {
-                                row.push('');
-                            }
-                        });
-                        
-                        data.push(row);
-                    }
-                });
-
-                // Створюємо worksheet
-                const ws = XLSX.utils.aoa_to_sheet(data);
-
-                // Встановлюємо ширину колонок
-                const colWidths = [
-                    { wch: 12 },  // День
-                    { wch: 8 }    // Урок
-                ];
-                classes.forEach(() => colWidths.push({ wch: 25 })); // Класи
-                ws['!cols'] = colWidths;
-
-                // Встановлюємо висоту рядків
-                ws['!rows'] = [];
-                for (let i = 0; i < data.length; i++) {
-                    ws['!rows'].push({ hpt: i === 0 ? 20 : 50 }); // Заголовок менший, решта більші
-                }
-
-                // Об'єднуємо клітинки для днів тижня
-                if (!ws['!merges']) ws['!merges'] = [];
-                
-                let currentRow = 1; // Починаємо з 1 (0 - заголовок)
-                days.forEach(() => {
-                    // Об'єднуємо клітинки дня (lessons рядків)
-                    ws['!merges'].push({
-                        s: { r: currentRow, c: 0 },
-                        e: { r: currentRow + lessons - 1, c: 0 }
-                    });
-                    currentRow += lessons;
-                });
-
-                // Застосовуємо стилі до всіх клітинок
-                const range = XLSX.utils.decode_range(ws['!ref']);
-                
-                for (let R = range.s.r; R <= range.e.r; ++R) {
-                    for (let C = range.s.c; C <= range.e.c; ++C) {
-                        const cell_address = { c: C, r: R };
-                        const cell_ref = XLSX.utils.encode_cell(cell_address);
-                        
-                        if (!ws[cell_ref]) {
-                            ws[cell_ref] = { t: 's', v: '' };
-                        }
-                        
-                        // Базові стилі для всіх клітинок
-                        ws[cell_ref].s = {
-                            alignment: {
-                                horizontal: 'center',
-                                vertical: 'middle',
-                                wrapText: true
-                            },
-                            border: {
-                                top: { style: 'thin', color: { rgb: '000000' } },
-                                bottom: { style: 'thin', color: { rgb: '000000' } },
-                                left: { style: 'thin', color: { rgb: '000000' } },
-                                right: { style: 'thin', color: { rgb: '000000' } }
-                            }
-                        };
-                        
-                        // Стилі для заголовків
-                        if (R === 0) {
-                            ws[cell_ref].s.fill = {
-                                patternType: 'solid',
-                                fgColor: { rgb: '667eea' }
-                            };
-                            ws[cell_ref].s.font = {
-                                bold: true,
-                                color: { rgb: 'FFFFFF' },
-                                sz: 12
-                            };
-                        }
-                        // Стилі для колонки "День"
-                        else if (C === 0) {
-                            ws[cell_ref].s.fill = {
-                                patternType: 'solid',
-                                fgColor: { rgb: 'e9ecef' }
-                            };
-                            ws[cell_ref].s.font = {
-                                bold: true,
-                                sz: 11
-                            };
-                        }
-                        // Стилі для колонки "Урок"
-                        else if (C === 1) {
-                            ws[cell_ref].s.fill = {
-                                patternType: 'solid',
-                                fgColor: { rgb: 'f8f9fa' }
-                            };
-                            ws[cell_ref].s.font = {
-                                bold: true,
-                                sz: 11
-                            };
-                        }
-                    }
-                }
-
-                // Додаємо worksheet до workbook
-                XLSX.utils.book_append_sheet(wb, ws, 'Розклад');
-
-                // Створюємо аркуш зі списком предметів
-                const subjectsData = [['Предмет', 'Вчитель', 'Годин/тиждень', 'Використано']];
-                subjects.forEach(subject => {
-                    let usedCount = 0;
-                    classes.forEach(cls => {
-                        const schedule = schedules[cls.id] || {};
-                        Object.values(schedule).forEach(slot => {
-                            if (Array.isArray(slot)) {
-                                usedCount += slot.filter(s => s.subjectId === subject.id).length;
-                            } else if (slot && slot.subjectId === subject.id) {
-                                usedCount++;
-                            }
-                        });
-                    });
-                    subjectsData.push([subject.name, subject.teacher, subject.hours, usedCount]);
-                });
-
-                const subjectsWs = XLSX.utils.aoa_to_sheet(subjectsData);
-                subjectsWs['!cols'] = [{ wch: 25 }, { wch: 25 }, { wch: 15 }, { wch: 15 }];
-                
-                // Стилі для аркушу предметів
-                const subjectsRange = XLSX.utils.decode_range(subjectsWs['!ref']);
-                for (let R = subjectsRange.s.r; R <= subjectsRange.e.r; ++R) {
-                    for (let C = subjectsRange.s.c; C <= subjectsRange.e.c; ++C) {
-                        const cell_address = { c: C, r: R };
-                        const cell_ref = XLSX.utils.encode_cell(cell_address);
-                        
-                        if (!subjectsWs[cell_ref]) continue;
-                        
-                        subjectsWs[cell_ref].s = {
-                            alignment: {
-                                horizontal: 'center',
-                                vertical: 'middle'
-                            },
-                            border: {
-                                top: { style: 'thin' },
-                                bottom: { style: 'thin' },
-                                left: { style: 'thin' },
-                                right: { style: 'thin' }
-                            }
-                        };
-                        
-                        if (R === 0) {
-                            subjectsWs[cell_ref].s.fill = {
-                                patternType: 'solid',
-                                fgColor: { rgb: '667eea' }
-                            };
-                            subjectsWs[cell_ref].s.font = {
-                                bold: true,
-                                color: { rgb: 'FFFFFF' }
-                            };
-                        }
-                    }
-                }
-                
-                XLSX.utils.book_append_sheet(wb, subjectsWs, 'Предмети');
-
-                // Зберігаємо файл
-                const fileName = `rozklad_${new Date().toISOString().split('T')[0]}.xlsx`;
-                XLSX.writeFile(wb, fileName);
-
-                alert('✅ Розклад успішно експортовано в Excel!');
-            } catch (error) {
-                alert('❌ Помилка при експорті в Excel: ' + error.message);
-                console.error('Помилка експорту:', error);
-            }
+            renderSubjects();
         }
 
         renderClasses();
-        renderSubjects();
-        renderSchedules();
     </script>
 </body>
 </html>
