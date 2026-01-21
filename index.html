@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Розклад уроків</title>
+    <title>Розклад уроків v 1.8</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
@@ -456,6 +456,10 @@
 
         .multiple-lessons.drag-over {
             box-shadow: 0 0 0 3px #667eea;
+        }
+
+        .schedule-table td.drag-over {
+            background: #e7f3ff !important;
         }
 
         .lesson-card.dragging {
@@ -1145,19 +1149,15 @@
                 slot.addEventListener('drop', handleSlotDrop);
             });
 
-            // Додаємо обробники до заповнених клітинок (lesson-card та multiple-lessons)
-            const lessonCards = document.querySelectorAll('.lesson-card:not([draggable])');
-            lessonCards.forEach(card => {
-                card.addEventListener('dragover', handleSlotDragOver);
-                card.addEventListener('dragleave', handleSlotDragLeave);
-                card.addEventListener('drop', handleCardDrop);
-            });
-
-            const multipleLessons = document.querySelectorAll('.multiple-lessons');
-            multipleLessons.forEach(container => {
-                container.addEventListener('dragover', handleSlotDragOver);
-                container.addEventListener('dragleave', handleSlotDragLeave);
-                container.addEventListener('drop', handleCardDrop);
+            // Додаємо обробники до всіх td в таблиці розкладу (крім перших двох колонок)
+            const scheduleTds = document.querySelectorAll('.schedule-table tbody td:not(.lesson-number):not(:first-child)');
+            scheduleTds.forEach(td => {
+                // Пропускаємо td з lesson-slot (вони вже оброблені)
+                if (td.querySelector('.lesson-slot')) return;
+                
+                td.addEventListener('dragover', handleTdDragOver);
+                td.addEventListener('dragleave', handleTdDragLeave);
+                td.addEventListener('drop', handleTdDrop);
             });
 
             // Додаємо обробники для контейнерів плиток
@@ -1209,37 +1209,41 @@
             e.currentTarget.classList.remove('drag-over');
         }
 
-        function handleCardDrop(e) {
+        function handleTdDragOver(e) {
             e.preventDefault();
             e.stopPropagation();
-            e.currentTarget.classList.remove('drag-over');
+            const lessonCard = e.currentTarget.querySelector('.lesson-card, .multiple-lessons');
+            if (lessonCard) {
+                lessonCard.classList.add('drag-over');
+            }
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleTdDragLeave(e) {
+            e.stopPropagation();
+            const lessonCard = e.currentTarget.querySelector('.lesson-card, .multiple-lessons');
+            if (lessonCard) {
+                lessonCard.classList.remove('drag-over');
+            }
+        }
+
+        function handleTdDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
             
-            // Знаходимо найближчу td клітинку
-            let td = e.currentTarget.closest('td');
-            if (!td) return;
-            
-            // Знаходимо lesson-slot або lesson-card всередині td
-            let slot = td.querySelector('.lesson-slot');
-            if (!slot) {
-                // Якщо немає lesson-slot, значить є lesson-card або multiple-lessons
-                // Отримуємо дані з першого lesson-card
-                const firstCard = td.querySelector('.lesson-card');
-                if (firstCard) {
-                    slot = {
-                        dataset: {
-                            classId: firstCard.dataset.classId,
-                            day: firstCard.dataset.day,
-                            lesson: firstCard.dataset.lesson
-                        }
-                    };
-                }
+            const td = e.currentTarget;
+            const lessonCard = td.querySelector('.lesson-card, .multiple-lessons');
+            if (lessonCard) {
+                lessonCard.classList.remove('drag-over');
             }
             
-            if (!slot || !slot.dataset) return;
+            // Отримуємо дані з першого lesson-card в td
+            const firstCard = td.querySelector('.lesson-card');
+            if (!firstCard) return;
             
-            const classId = parseInt(slot.dataset.classId);
-            const day = slot.dataset.day;
-            const lesson = slot.dataset.lesson;
+            const classId = parseInt(firstCard.dataset.classId);
+            const day = firstCard.dataset.day;
+            const lesson = firstCard.dataset.lesson;
             const key = `${day}-${lesson}`;
             
             const schedule = schedules[classId];
