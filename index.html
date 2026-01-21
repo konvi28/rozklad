@@ -8,7 +8,7 @@
     <link rel="apple-touch-icon" href="logo.webp">
     <title>Розклад уроків v 1.93</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-       <style>
+    <style>
         * {
             margin: 0;
             padding: 0;
@@ -212,6 +212,9 @@
             align-items: center;
             flex-wrap: wrap;
             flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
@@ -389,10 +392,12 @@
         }
         
         .schedule-table th:first-child {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
             padding: 10px 5px;
-            width: 80px;
-            min-width: 80px;
-            max-width: 80px;
+            width: 30px;
+            min-width: 30px;
+            max-width: 30px;
         }
         
         .schedule-table th:first-child,
@@ -420,10 +425,12 @@
             background: #e9ecef;
             z-index: 5;
             font-weight: 600;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
             padding: 10px 5px;
-            width: 80px;
-            min-width: 80px;
-            max-width: 80px;
+            width: 30px;
+            min-width: 30px;
+            max-width: 30px;
         }
         
         .schedule-table td.lesson-number {
@@ -549,7 +556,6 @@
             display: flex;
             flex-direction: column;
             gap: 0;
-            background: #90EE90 !important;
         }
 
         .lesson-card-split {
