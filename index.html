@@ -450,6 +450,14 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
+        .lesson-card.drag-over {
+            box-shadow: 0 0 0 3px #667eea;
+        }
+
+        .multiple-lessons.drag-over {
+            box-shadow: 0 0 0 3px #667eea;
+        }
+
         .lesson-card.dragging {
             opacity: 0.5;
         }
@@ -1137,6 +1145,21 @@
                 slot.addEventListener('drop', handleSlotDrop);
             });
 
+            // Додаємо обробники до заповнених клітинок (lesson-card та multiple-lessons)
+            const lessonCards = document.querySelectorAll('.lesson-card:not([draggable])');
+            lessonCards.forEach(card => {
+                card.addEventListener('dragover', handleSlotDragOver);
+                card.addEventListener('dragleave', handleSlotDragLeave);
+                card.addEventListener('drop', handleCardDrop);
+            });
+
+            const multipleLessons = document.querySelectorAll('.multiple-lessons');
+            multipleLessons.forEach(container => {
+                container.addEventListener('dragover', handleSlotDragOver);
+                container.addEventListener('dragleave', handleSlotDragLeave);
+                container.addEventListener('drop', handleCardDrop);
+            });
+
             // Додаємо обробники для контейнерів плиток
             const containers = document.querySelectorAll('.tiles-container');
             containers.forEach(container => {
@@ -1184,6 +1207,102 @@
 
         function handleSlotDragLeave(e) {
             e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleCardDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.classList.remove('drag-over');
+            
+            // Знаходимо найближчу td клітинку
+            let td = e.currentTarget.closest('td');
+            if (!td) return;
+            
+            // Знаходимо lesson-slot або lesson-card всередині td
+            let slot = td.querySelector('.lesson-slot');
+            if (!slot) {
+                // Якщо немає lesson-slot, значить є lesson-card або multiple-lessons
+                // Отримуємо дані з першого lesson-card
+                const firstCard = td.querySelector('.lesson-card');
+                if (firstCard) {
+                    slot = {
+                        dataset: {
+                            classId: firstCard.dataset.classId,
+                            day: firstCard.dataset.day,
+                            lesson: firstCard.dataset.lesson
+                        }
+                    };
+                }
+            }
+            
+            if (!slot || !slot.dataset) return;
+            
+            const classId = parseInt(slot.dataset.classId);
+            const day = slot.dataset.day;
+            const lesson = slot.dataset.lesson;
+            const key = `${day}-${lesson}`;
+            
+            const schedule = schedules[classId];
+            
+            // Зберігаємо позицію прокрутки
+            const scheduleWrapper = document.querySelector('.schedule-wrapper');
+            const scrollTop = scheduleWrapper ? scheduleWrapper.scrollTop : 0;
+            const scrollLeft = scheduleWrapper ? scheduleWrapper.scrollLeft : 0;
+            
+            // Якщо переміщуємо з розкладу
+            if (fromSchedule && originalSlot) {
+                const oldKey = `${originalSlot.day}-${originalSlot.lesson}`;
+                const oldLessons = schedules[originalSlot.classId][oldKey];
+                
+                if (Array.isArray(oldLessons)) {
+                    // Видаляємо конкретний урок з масиву
+                    schedules[originalSlot.classId][oldKey] = oldLessons.filter(l => l.subjectId !== draggedSubjectId);
+                    if (schedules[originalSlot.classId][oldKey].length === 0) {
+                        delete schedules[originalSlot.classId][oldKey];
+                    }
+                } else if (oldLessons && oldLessons.subjectId === draggedSubjectId) {
+                    delete schedules[originalSlot.classId][oldKey];
+                }
+            }
+            
+            // Додаємо урок до нового слоту
+            const subject = subjects.find(s => s.id === draggedSubjectId);
+            const newLesson = {
+                subjectId: subject.id,
+                name: subject.name,
+                teacher: subject.teacher
+            };
+            
+            // Якщо в слоті вже є урок(и), додаємо до масиву
+            if (schedule[key]) {
+                if (Array.isArray(schedule[key])) {
+                    // Перевіряємо чи такий урок вже не доданий
+                    const exists = schedule[key].some(l => l.subjectId === subject.id);
+                    if (!exists) {
+                        schedule[key].push(newLesson);
+                    }
+                } else {
+                    // Перетворюємо в масив
+                    const existingLesson = schedule[key];
+                    if (existingLesson.subjectId !== subject.id) {
+                        schedule[key] = [existingLesson, newLesson];
+                    }
+                }
+            } else {
+                schedule[key] = newLesson;
+            }
+            
+            renderSchedules();
+            renderSubjects();
+            
+            // Відновлюємо позицію прокрутки після рендерингу
+            setTimeout(() => {
+                const newScheduleWrapper = document.querySelector('.schedule-wrapper');
+                if (newScheduleWrapper) {
+                    newScheduleWrapper.scrollTop = scrollTop;
+                    newScheduleWrapper.scrollLeft = scrollLeft;
+                }
+            }, 0);
         }
 
         function handleSlotDrop(e) {
