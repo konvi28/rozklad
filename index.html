@@ -6,7 +6,7 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 1.983</title>
+    <title>Розклад уроків v 1.984</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
 
@@ -450,10 +450,10 @@
         
         /* Кольори для днів тижня */
         .day-0 { background: #e3f2fd !important; } /* Понеділок - світло-синій */
-        .day-1 { background: #e3f2fd !important; } /* Вівторок - світло-фіолетовий */
-        .day-2 { background: #e3f2fd !important; } /* Середа - світло-зелений */
-        .day-3 { background: #e3f2fd !important; } /* Четвер - світло-помаранчевий */
-        .day-4 { background: #e3f2fd !important; } /* П'ятниця - світло-рожевий */
+        .day-1 { background: #f3e5f5 !important; } /* Вівторок - світло-фіолетовий */
+        .day-2 { background: #e8f5e9 !important; } /* Середа - світло-зелений */
+        .day-3 { background: #fff3e0 !important; } /* Четвер - світло-помаранчевий */
+        .day-4 { background: #fce4ec !important; } /* П'ятниця - світло-рожевий */
         
         .schedule-table td.lesson-number {
             position: sticky;
@@ -716,6 +716,32 @@
             letter-spacing: 0.5px;
             flex-shrink: 0;
         }
+
+        /* Стилі для лупи */
+        #magnifier {
+            position: fixed;
+            width: 200px;
+            height: 200px;
+            border: 3px solid #667eea;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1000;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        #magnifier.active {
+            display: block !important;
+        }
+
+        .magnifier-active {
+            cursor: none !important;
+        }
+
+        .magnifier-active * {
+            cursor: none !important;
+        }
     </style>
 </head>
 <body>
@@ -785,9 +811,13 @@
                 <button class="btn btn-success" onclick="exportToExcel()">📊 Експорт в Excel</button>
                 <button class="btn btn-danger" onclick="clearDemoData()">🗑️ Видалити демо-дані</button>
                 <button class="btn btn-info" onclick="checkTeacherConflicts()">🔍 Перевірка на збіг</button>
+                <button class="btn btn-info" onclick="toggleMagnifier()">🔎 Лупа</button>
                 <input type="file" id="fileInput" accept=".json" onchange="loadData(event)">
             </div>
             <div id="scheduleContent"></div>
+            
+            <!-- Лупа -->
+            <div id="magnifier" style="display: none;"></div>
         </div>
 
         <div class="footer">
@@ -2152,6 +2182,109 @@
                 alert('❌ Помилка при експорті в Excel: ' + error.message);
                 console.error('Помилка експорту:', error);
             }
+        }
+
+        // Функціонал лупи
+        let magnifierActive = false;
+        let magnifierZoom = 2;
+
+        function toggleMagnifier() {
+            magnifierActive = !magnifierActive;
+            const magnifier = document.getElementById('magnifier');
+            const scheduleTab = document.getElementById('scheduleTab');
+            
+            if (magnifierActive) {
+                magnifier.classList.add('active');
+                scheduleTab.classList.add('magnifier-active');
+                scheduleTab.addEventListener('mousemove', moveMagnifier);
+                scheduleTab.addEventListener('mouseleave', hideMagnifier);
+            } else {
+                magnifier.classList.remove('active');
+                magnifier.style.display = 'none';
+                scheduleTab.classList.remove('magnifier-active');
+                scheduleTab.removeEventListener('mousemove', moveMagnifier);
+                scheduleTab.removeEventListener('mouseleave', hideMagnifier);
+            }
+        }
+
+        function moveMagnifier(e) {
+            const magnifier = document.getElementById('magnifier');
+            const scheduleTab = document.getElementById('scheduleTab');
+            
+            if (!magnifierActive) return;
+            
+            magnifier.style.display = 'block';
+            
+            // Позиціонуємо лупу навколо курсора
+            const x = e.pageX - 100; // центруємо лупу
+            const y = e.pageY - 100;
+            
+            magnifier.style.left = x + 'px';
+            magnifier.style.top = y + 'px';
+            
+            // Створюємо збільшене зображення
+            const rect = scheduleTab.getBoundingClientRect();
+            const xPercent = ((e.clientX - rect.left) / rect.width) * 100;
+            const yPercent = ((e.clientY - rect.top + scheduleTab.scrollTop) / scheduleTab.scrollHeight) * 100;
+            
+            // Клонуємо вміст для збільшення
+            magnifier.style.backgroundImage = `url('${captureElement(scheduleTab)}')`;
+            magnifier.style.backgroundSize = `${scheduleTab.offsetWidth * magnifierZoom}px ${scheduleTab.offsetHeight * magnifierZoom}px`;
+            magnifier.style.backgroundPosition = `${-xPercent * magnifierZoom + 50}% ${-yPercent * magnifierZoom + 50}%`;
+        }
+
+        function hideMagnifier() {
+            const magnifier = document.getElementById('magnifier');
+            magnifier.style.display = 'none';
+        }
+
+        function captureElement(element) {
+            // Простий спосіб - використовуємо canvas для захоплення
+            // Альтернативний підхід - просто клонуємо DOM
+            return '';
+        }
+
+        // Альтернативний підхід - використовуємо HTML clone замість canvas
+        function moveMagnifierAlternative(e) {
+            const magnifier = document.getElementById('magnifier');
+            
+            if (!magnifierActive) return;
+            
+            magnifier.style.display = 'block';
+            
+            // Позиціонуємо лупу
+            const x = e.pageX - 100;
+            const y = e.pageY - 100;
+            
+            magnifier.style.left = x + 'px';
+            magnifier.style.top = y + 'px';
+            
+            // Копіюємо вміст
+            const scheduleWrapper = document.querySelector('.schedule-wrapper');
+            if (!scheduleWrapper) return;
+            
+            const rect = scheduleWrapper.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left + scheduleWrapper.scrollLeft;
+            const mouseY = e.clientY - rect.top + scheduleWrapper.scrollTop;
+            
+            // Створюємо transform для збільшення
+            const table = scheduleWrapper.querySelector('.schedule-table');
+            if (table) {
+                const clone = table.cloneNode(true);
+                clone.style.transform = `scale(${magnifierZoom})`;
+                clone.style.transformOrigin = '0 0';
+                clone.style.position = 'absolute';
+                clone.style.left = `${-mouseX * (magnifierZoom - 1)}px`;
+                clone.style.top = `${-mouseY * (magnifierZoom - 1)}px`;
+                
+                magnifier.innerHTML = '';
+                magnifier.appendChild(clone);
+            }
+        }
+
+        // Використовуємо альтернативний підхід
+        function moveMagnifier(e) {
+            moveMagnifierAlternative(e);
         }
 
         renderClasses();
