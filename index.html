@@ -6,7 +6,7 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 1.95</title>
+    <title>Розклад уроків v 1.96</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
@@ -1512,16 +1512,18 @@ function changeSubjectHours(subjectId, change) {
     
     subject.hours = newHours;
     
-    // ТІЛЬКИ renderSubjects - він сам НЕ викликає renderSchedules
     renderSubjects();
-    // renderSchedules(); - ВИДАЛИТИ ЦЕЙ РЯДОК!
+    renderSchedules();
     
+    // Використовуємо подвійний requestAnimationFrame для гарантії
     requestAnimationFrame(() => {
-        const newScheduleWrapper = document.querySelector('.schedule-wrapper');
-        if (newScheduleWrapper) {
-            newScheduleWrapper.scrollTop = scrollTop;
-            newScheduleWrapper.scrollLeft = scrollLeft;
-        }
+        requestAnimationFrame(() => {
+            const newScheduleWrapper = document.querySelector('.schedule-wrapper');
+            if (newScheduleWrapper) {
+                newScheduleWrapper.scrollTop = scrollTop;
+                newScheduleWrapper.scrollLeft = scrollLeft;
+            }
+        });
     });
 }
 
