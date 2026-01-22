@@ -6,7 +6,7 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 2.2</title>
+    <title>Розклад уроків v 2.3</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
 
@@ -1706,38 +1706,122 @@
             subject.hours = newHours;
             const availableCount = newHours - usedCount;
             
-            // ОНОВЛЮЄМО БЛОК НА ВКЛАДЦІ "РОЗКЛАД" (якщо він є)
-            const scheduleSubjectItems = document.querySelectorAll('.available-tiles-section .subject-item');
-            scheduleSubjectItems.forEach(item => {
-                const subjectIdInDom = item.querySelector('.tiles-container')?.dataset.subjectId;
-                if (subjectIdInDom == subjectId) {
-                    const teacherDiv = item.querySelector('.subject-teacher');
-                    if (teacherDiv) {
-                        teacherDiv.textContent = `Вчитель: ${subject.teacher} • Доступно: ${availableCount} з ${newHours}`;
-                    }
-                    
-                    // Оновлюємо плитки
-                    const tilesContainer = item.querySelector('.tiles-container');
-                    if (tilesContainer) {
-                        const color = getSubjectColor(subjectId);
-                        let tilesHtml = '';
-                        
-                        for (let i = 0; i < availableCount; i++) {
-                            tilesHtml += `
-                                <div class="lesson-tile" 
-                                     draggable="true"
-                                     data-subject-id="${subjectId}"
-                                     style="background: ${color};">
-                                    ${subject.name}
-                                </div>
-                            `;
+            // ПЕРЕВІРЯЄМО ЧИ ПОТРІБНО ПОКАЗАТИ/ПРИХОВАТИ БЛОК available-tiles-section
+            let hasAvailableLessons = false;
+            subjects.forEach(s => {
+                let used = 0;
+                classes.forEach(cls => {
+                    const schedule = schedules[cls.id] || {};
+                    Object.values(schedule).forEach(slot => {
+                        if (Array.isArray(slot)) {
+                            used += slot.filter(lesson => lesson.subjectId === s.id).length;
+                        } else if (slot && slot.subjectId === s.id) {
+                            used++;
                         }
-                        
-                        tilesContainer.innerHTML = tilesHtml;
-                        attachScheduleDragHandlers();
-                    }
+                    });
+                });
+                if (s.hours - used > 0) {
+                    hasAvailableLessons = true;
                 }
             });
+            
+            // Якщо блок треба показати, але його немає - рендеримо весь розклад
+            const availableTilesSection = document.querySelector('.available-tiles-section');
+            const needsSection = hasAvailableLessons;
+            const hasSection = availableTilesSection !== null;
+            
+            if (needsSection && !hasSection) {
+                // Потрібен блок, але його немає - повний ререндеринг
+                renderSchedules();
+                return; // Виходимо, бо renderSchedules все оновив
+            } else if (!needsSection && hasSection) {
+                // Блок є, але він більше не потрібен - видаляємо його
+                availableTilesSection.remove();
+            }
+            
+            // ОНОВЛЮЄМО БЛОК НА ВКЛАДЦІ "РОЗКЛАД" (якщо він є)
+            if (availableTilesSection) {
+                const scheduleSubjectItems = availableTilesSection.querySelectorAll('.subject-item');
+                let subjectItemFound = false;
+                
+                scheduleSubjectItems.forEach(item => {
+                    const subjectIdInDom = item.querySelector('.tiles-container')?.dataset.subjectId;
+                    if (subjectIdInDom == subjectId) {
+                        subjectItemFound = true;
+                        
+                        // Якщо немає доступних уроків - видаляємо цей предмет з блоку
+                        if (availableCount === 0) {
+                            item.remove();
+                            return;
+                        }
+                        
+                        const teacherDiv = item.querySelector('.subject-teacher');
+                        if (teacherDiv) {
+                            teacherDiv.textContent = `Вчитель: ${subject.teacher} • Доступно: ${availableCount} з ${newHours}`;
+                        }
+                        
+                        // Оновлюємо плитки
+                        const tilesContainer = item.querySelector('.tiles-container');
+                        if (tilesContainer) {
+                            const color = getSubjectColor(subjectId);
+                            let tilesHtml = '';
+                            
+                            for (let i = 0; i < availableCount; i++) {
+                                tilesHtml += `
+                                    <div class="lesson-tile" 
+                                         draggable="true"
+                                         data-subject-id="${subjectId}"
+                                         style="background: ${color};">
+                                        ${subject.name}
+                                    </div>
+                                `;
+                            }
+                            
+                            tilesContainer.innerHTML = tilesHtml;
+                            attachScheduleDragHandlers();
+                        }
+                    }
+                });
+                
+                // Якщо предмета не було в блоку, але тепер є доступні уроки - додаємо його
+                if (!subjectItemFound && availableCount > 0) {
+                    const color = getSubjectColor(subjectId);
+                    let tilesHtml = '';
+                    
+                    for (let i = 0; i < availableCount; i++) {
+                        tilesHtml += `
+                            <div class="lesson-tile" 
+                                 draggable="true"
+                                 data-subject-id="${subjectId}"
+                                 style="background: ${color};">
+                                ${subject.name}
+                            </div>
+                        `;
+                    }
+                    
+                    const newSubjectItem = document.createElement('div');
+                    newSubjectItem.className = 'subject-item';
+                    newSubjectItem.style.marginBottom = '15px';
+                    newSubjectItem.innerHTML = `
+                        <div class="subject-header">
+                            <div class="subject-info">
+                                <div class="subject-name">${subject.name}</div>
+                                <div class="subject-teacher">Вчитель: ${subject.teacher} • Доступно: ${availableCount} з ${newHours}</div>
+                            </div>
+                            <div style="display: flex; gap: 5px; align-items: center;">
+                                <button class="btn-hour-control" onclick="changeSubjectHours(${subjectId}, -1, event);" title="Зменшити кількість годин">−</button>
+                                <button class="btn-hour-control" onclick="changeSubjectHours(${subjectId}, 1, event);" title="Збільшити кількість годин">+</button>
+                            </div>
+                        </div>
+                        <div class="tiles-container" data-subject-id="${subjectId}">
+                            ${tilesHtml}
+                        </div>
+                    `;
+                    
+                    availableTilesSection.appendChild(newSubjectItem);
+                    attachScheduleDragHandlers();
+                }
+            }
             
             // ОНОВЛЮЄМО БЛОК НА ВКЛАДЦІ "ПРЕДМЕТИ І ВЧИТЕЛІ"
             const subjectListItems = document.querySelectorAll('#subjectList .subject-item');
