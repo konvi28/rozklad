@@ -6,7 +6,7 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 2.1</title>
+    <title>Розклад уроків v 2.2</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
 
@@ -1072,8 +1072,14 @@
                                 <div class="subject-name">${subject.name}</div>
                                 <div class="subject-teacher">Вчитель: ${subject.teacher}</div>
                             </div>
-                            <span class="subject-hours">${usedCount}/${subject.hours} год</span>
-                            <button class="btn btn-danger" onclick="removeSubject(${subject.id})">Видалити</button>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <span class="subject-hours">${usedCount}/${subject.hours} год</span>
+                                <div style="display: flex; gap: 5px;">
+                                    <button class="btn-hour-control" onclick="changeSubjectHours(${subject.id}, -1, event);" title="Зменшити кількість годин">−</button>
+                                    <button class="btn-hour-control" onclick="changeSubjectHours(${subject.id}, 1, event);" title="Збільшити кількість годин">+</button>
+                                </div>
+                                <button class="btn btn-danger" onclick="removeSubject(${subject.id})">Видалити</button>
+                            </div>
                         </div>
                         <div class="tiles-container" 
                              data-subject-id="${subject.id}">
@@ -1696,15 +1702,13 @@
                 return;
             }
             
-            // ПРОСТО ЗМІНЮЄМО ЗНАЧЕННЯ БЕЗ ПОВНОГО РЕРЕНДЕРИНГУ
+            // ЗМІНЮЄМО ЗНАЧЕННЯ
             subject.hours = newHours;
-            
-            // ОНОВЛЮЄМО ТІЛЬКИ ТЕКСТ БЕЗ ПЕРЕСТВОРЕННЯ DOM
             const availableCount = newHours - usedCount;
             
-            // Знаходимо елемент з інформацією про доступність
-            const subjectItems = document.querySelectorAll('.available-tiles-section .subject-item');
-            subjectItems.forEach(item => {
+            // ОНОВЛЮЄМО БЛОК НА ВКЛАДЦІ "РОЗКЛАД" (якщо він є)
+            const scheduleSubjectItems = document.querySelectorAll('.available-tiles-section .subject-item');
+            scheduleSubjectItems.forEach(item => {
                 const subjectIdInDom = item.querySelector('.tiles-container')?.dataset.subjectId;
                 if (subjectIdInDom == subjectId) {
                     const teacherDiv = item.querySelector('.subject-teacher');
@@ -1734,6 +1738,49 @@
                     }
                 }
             });
+            
+            // ОНОВЛЮЄМО БЛОК НА ВКЛАДЦІ "ПРЕДМЕТИ І ВЧИТЕЛІ"
+            const subjectListItems = document.querySelectorAll('#subjectList .subject-item');
+            subjectListItems.forEach(item => {
+                const subjectIdInDom = item.querySelector('.tiles-container')?.dataset.subjectId;
+                if (subjectIdInDom == subjectId) {
+                    // Оновлюємо лічильник годин
+                    const hoursSpan = item.querySelector('.subject-hours');
+                    if (hoursSpan) {
+                        hoursSpan.textContent = `${usedCount}/${newHours} год`;
+                    }
+                    
+                    // Оновлюємо плитки
+                    const tilesContainer = item.querySelector('.tiles-container');
+                    if (tilesContainer) {
+                        const color = getSubjectColor(subjectId);
+                        let tilesHtml = '';
+                        
+                        for (let i = 0; i < newHours; i++) {
+                            const isUsed = i < usedCount;
+                            tilesHtml += `
+                                <div class="lesson-tile ${isUsed ? 'used' : ''}" 
+                                     draggable="${!isUsed}"
+                                     data-subject-id="${subjectId}"
+                                     data-tile-index="${i}"
+                                     style="background: ${color};">
+                                    ${subject.name}
+                                </div>
+                            `;
+                        }
+                        
+                        tilesContainer.innerHTML = tilesHtml;
+                        attachTileDragHandlers();
+                    }
+                }
+            });
+            
+            // Оновлюємо статистику на вкладці предметів
+            const totalHours = subjects.reduce((sum, s) => sum + s.hours, 0);
+            const totalHoursElement = document.getElementById('totalHours');
+            if (totalHoursElement) {
+                totalHoursElement.textContent = totalHours;
+            }
             
             // Blur кнопки
             if (event && event.target) {
