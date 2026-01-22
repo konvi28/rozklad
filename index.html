@@ -6,7 +6,7 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 1.971</title>
+    <title>Розклад уроків v 1.972</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
@@ -1482,6 +1482,7 @@ function changeSubjectHours(subjectId, change, event) {
     if (event) {
         event.preventDefault();
         event.stopPropagation();
+		 event.target.blur(); // ДОДАЙ ЦЕЙ РЯДОК - прибирає фокус з кнопки
     }
     
     const subject = subjects.find(s => s.id === subjectId);
