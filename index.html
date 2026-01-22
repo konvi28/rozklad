@@ -9,24 +9,6 @@
     <title>Розклад уроків v 1.979</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-	
-	.schedule-wrapper {
-    scroll-behavior: auto !important;
-}
-.available-tiles-section,
-.available-tiles-section * {
-    scroll-margin: 0 !important;
-    scroll-padding: 0 !important;
-}
-
-.btn-hour-control {
-    scroll-margin: 0 !important;
-    scroll-padding: 0 !important;
-}
-
-* {
-    scroll-behavior: auto !important;
-}
 
         * {
             margin: 0;
@@ -597,16 +579,19 @@
             font-size: 14px;
         }
 
-.available-tiles-section {
-    margin-bottom: 10px;
-    padding: 10px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    max-height: 300px;
-    overflow-y: auto;
-    flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
+        .available-tiles-section {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 15;
+        }
         
         .available-tiles-section::-webkit-scrollbar {
             width: 8px;
@@ -1074,8 +1059,8 @@
                                 <div class="subject-teacher">Вчитель: ${subject.teacher} • Доступно: ${availableCount} з ${subject.hours}</div>
                             </div>
                             <div style="display: flex; gap: 5px; align-items: center;">
-<button class="btn-hour-control" onclick="changeSubjectHours(${subject.id}, -1, event);" title="Зменшити кількість годин">−</button>
-<button class="btn-hour-control" onclick="changeSubjectHours(${subject.id}, 1, event);" title="Збільшити кількість годин">+</button>
+                                <button class="btn-hour-control" onclick="changeSubjectHours(${subject.id}, -1, event);" title="Зменшити кількість годин">−</button>
+                                <button class="btn-hour-control" onclick="changeSubjectHours(${subject.id}, 1, event);" title="Збільшити кількість годин">+</button>
                             </div>
                         </div>
                         <div class="tiles-container" data-subject-id="${subject.id}">
@@ -1494,87 +1479,87 @@
         }
 
         // Функції збереження та завантаження
-function changeSubjectHours(subjectId, change, event) {
-    if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-    }
-    
-    const subject = subjects.find(s => s.id === subjectId);
-    if (!subject) return;
-    
-    const newHours = subject.hours + change;
-    
-    if (newHours < 1) {
-        alert('⚠️ Кількість годин не може бути менше 1');
-        return;
-    }
-    
-    let usedCount = 0;
-    classes.forEach(cls => {
-        const schedule = schedules[cls.id] || {};
-        Object.values(schedule).forEach(slot => {
-            if (Array.isArray(slot)) {
-                usedCount += slot.filter(s => s.subjectId === subject.id).length;
-            } else if (slot && slot.subjectId === subject.id) {
-                usedCount++;
-            }
-        });
-    });
-    
-    if (change < 0 && newHours < usedCount) {
-        alert(`⚠️ Неможливо зменшити кількість годин до ${newHours}, оскільки вже використано ${usedCount} годин в розкладі. Спочатку видаліть деякі уроки з розкладу.`);
-        return;
-    }
-    
-    // ПРОСТО ЗМІНЮЄМО ЗНАЧЕННЯ БЕЗ ПОВНОГО РЕРЕНДЕРИНГУ
-    subject.hours = newHours;
-    
-    // ОНОВЛЮЄМО ТІЛЬКИ ТЕКСТ БЕЗ ПЕРЕСТВОРЕННЯ DOM
-    const availableCount = newHours - usedCount;
-    
-    // Знаходимо елемент з інформацією про доступність
-    const subjectItems = document.querySelectorAll('.available-tiles-section .subject-item');
-    subjectItems.forEach(item => {
-        const subjectIdInDom = item.querySelector('.tiles-container')?.dataset.subjectId;
-        if (subjectIdInDom == subjectId) {
-            const teacherDiv = item.querySelector('.subject-teacher');
-            if (teacherDiv) {
-                teacherDiv.textContent = `Вчитель: ${subject.teacher} • Доступно: ${availableCount} з ${newHours}`;
+        function changeSubjectHours(subjectId, change, event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
             }
             
-            // Оновлюємо плитки
-            const tilesContainer = item.querySelector('.tiles-container');
-            if (tilesContainer) {
-                const color = getSubjectColor(subjectId);
-                let tilesHtml = '';
-                
-                for (let i = 0; i < availableCount; i++) {
-                    tilesHtml += `
-                        <div class="lesson-tile" 
-                             draggable="true"
-                             data-subject-id="${subjectId}"
-                             style="background: ${color};">
-                            ${subject.name}
-                        </div>
-                    `;
+            const subject = subjects.find(s => s.id === subjectId);
+            if (!subject) return;
+            
+            const newHours = subject.hours + change;
+            
+            if (newHours < 1) {
+                alert('⚠️ Кількість годин не може бути менше 1');
+                return;
+            }
+            
+            let usedCount = 0;
+            classes.forEach(cls => {
+                const schedule = schedules[cls.id] || {};
+                Object.values(schedule).forEach(slot => {
+                    if (Array.isArray(slot)) {
+                        usedCount += slot.filter(s => s.subjectId === subject.id).length;
+                    } else if (slot && slot.subjectId === subject.id) {
+                        usedCount++;
+                    }
+                });
+            });
+            
+            if (change < 0 && newHours < usedCount) {
+                alert(`⚠️ Неможливо зменшити кількість годин до ${newHours}, оскільки вже використано ${usedCount} годин в розкладі. Спочатку видаліть деякі уроки з розкладу.`);
+                return;
+            }
+            
+            // ПРОСТО ЗМІНЮЄМО ЗНАЧЕННЯ БЕЗ ПОВНОГО РЕРЕНДЕРИНГУ
+            subject.hours = newHours;
+            
+            // ОНОВЛЮЄМО ТІЛЬКИ ТЕКСТ БЕЗ ПЕРЕСТВОРЕННЯ DOM
+            const availableCount = newHours - usedCount;
+            
+            // Знаходимо елемент з інформацією про доступність
+            const subjectItems = document.querySelectorAll('.available-tiles-section .subject-item');
+            subjectItems.forEach(item => {
+                const subjectIdInDom = item.querySelector('.tiles-container')?.dataset.subjectId;
+                if (subjectIdInDom == subjectId) {
+                    const teacherDiv = item.querySelector('.subject-teacher');
+                    if (teacherDiv) {
+                        teacherDiv.textContent = `Вчитель: ${subject.teacher} • Доступно: ${availableCount} з ${newHours}`;
+                    }
+                    
+                    // Оновлюємо плитки
+                    const tilesContainer = item.querySelector('.tiles-container');
+                    if (tilesContainer) {
+                        const color = getSubjectColor(subjectId);
+                        let tilesHtml = '';
+                        
+                        for (let i = 0; i < availableCount; i++) {
+                            tilesHtml += `
+                                <div class="lesson-tile" 
+                                     draggable="true"
+                                     data-subject-id="${subjectId}"
+                                     style="background: ${color};">
+                                    ${subject.name}
+                                </div>
+                            `;
+                        }
+                        
+                        if (availableCount === 0) {
+                            tilesHtml = '<div style="color: #6c757d; font-size: 12px; padding: 5px;">Всі уроки розміщені в розкладі</div>';
+                        }
+                        
+                        tilesContainer.innerHTML = tilesHtml;
+                        attachScheduleDragHandlers();
+                    }
                 }
-                
-                if (availableCount === 0) {
-                    tilesHtml = '<div style="color: #6c757d; font-size: 12px; padding: 5px;">Всі уроки розміщені в розкладі</div>';
-                }
-                
-                tilesContainer.innerHTML = tilesHtml;
-                attachScheduleDragHandlers();
+            });
+            
+            // Blur кнопки
+            if (event && event.target) {
+                event.target.blur();
             }
         }
-    });
-    
-    // Blur кнопки
-    if (event && event.target) {
-        event.target.blur();
-    }
-}
 
         function clearDemoData() {
             if (confirm('Ви впевнені, що хочете видалити всі дані (класи, предмети, розклад)?')) {
