@@ -6,9 +6,18 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 1.976</title>
+    <title>Розклад уроків v 1.977</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
+	
+	.schedule-wrapper {
+    scroll-behavior: auto !important;
+}
+
+* {
+    scroll-behavior: auto !important;
+}
+
         * {
             margin: 0;
             padding: 0;
@@ -1510,19 +1519,35 @@ function changeSubjectHours(subjectId, change, event) {
     }
     
     const scheduleWrapper = document.querySelector('.schedule-wrapper');
+    const availableTiles = document.querySelector('.available-tiles-section');
     const scrollTop = scheduleWrapper ? scheduleWrapper.scrollTop : 0;
     const scrollLeft = scheduleWrapper ? scheduleWrapper.scrollLeft : 0;
     
+    // ПОВНІСТЮ БЛОКУЄМО СКРОЛ І ВЗАЄМОДІЮ
+    if (scheduleWrapper) {
+        scheduleWrapper.style.pointerEvents = 'none';
+        scheduleWrapper.style.overflow = 'hidden';
+    }
+    if (availableTiles) {
+        availableTiles.style.pointerEvents = 'none';
+    }
+    
     subject.hours = newHours;
     
-    // НЕ ВИКЛИКАЄМО renderSubjects() - тільки renderSchedules()
-    // renderSubjects(); // ЗАКОМЕНТУЙ ЦЮ СТРОКУ
     renderSchedules();
     
+    // ВІДНОВЛЮЄМО СИНХРОННО БЕЗ ЗАТРИМКИ
     const newScheduleWrapper = document.querySelector('.schedule-wrapper');
+    const newAvailableTiles = document.querySelector('.available-tiles-section');
+    
     if (newScheduleWrapper) {
         newScheduleWrapper.scrollTop = scrollTop;
         newScheduleWrapper.scrollLeft = scrollLeft;
+        newScheduleWrapper.style.overflow = 'auto';
+        newScheduleWrapper.style.pointerEvents = 'auto';
+    }
+    if (newAvailableTiles) {
+        newAvailableTiles.style.pointerEvents = 'auto';
     }
 }
 
