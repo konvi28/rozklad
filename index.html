@@ -6,7 +6,7 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 1.974</title>
+    <title>Розклад уроків v 1.975</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
@@ -1516,28 +1516,16 @@ function changeSubjectHours(subjectId, change, event) {
     const scrollTop = scheduleWrapper ? scheduleWrapper.scrollTop : 0;
     const scrollLeft = scheduleWrapper ? scheduleWrapper.scrollLeft : 0;
     
-    // ЗБЕРІГАЄМО ПОТОЧНИЙ СТИЛЬ OVERFLOW
-    const originalOverflow = scheduleWrapper ? scheduleWrapper.style.overflow : '';
-    const originalPosition = scheduleWrapper ? scheduleWrapper.style.position : '';
-    
-    // ЖОРСТКО ФІКСУЄМО ПОЗИЦІЮ
-    if (scheduleWrapper) {
-        scheduleWrapper.style.overflow = 'hidden';
-        scheduleWrapper.style.position = 'relative';
-    }
-    
     subject.hours = newHours;
     
-    renderSubjects();
+    // НЕ ВИКЛИКАЄМО renderSubjects() - тільки renderSchedules()
+    // renderSubjects(); // ЗАКОМЕНТУЙ ЦЮ СТРОКУ
     renderSchedules();
     
-    // СИНХРОННО ВІДНОВЛЮЄМО ВСЕ
     const newScheduleWrapper = document.querySelector('.schedule-wrapper');
     if (newScheduleWrapper) {
         newScheduleWrapper.scrollTop = scrollTop;
         newScheduleWrapper.scrollLeft = scrollLeft;
-        newScheduleWrapper.style.overflow = originalOverflow || 'auto';
-        newScheduleWrapper.style.position = originalPosition || '';
     }
 }
 
