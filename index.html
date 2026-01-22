@@ -6,7 +6,7 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 1.985</title>
+    <title>Розклад уроків v 1.990</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
 
@@ -244,6 +244,10 @@
             display: none;
         }
 
+        #excelInput {
+            display: none;
+        }
+
         .class-list {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -449,11 +453,11 @@
         }
         
         /* Кольори для днів тижня */
-        .day-0 { background: #94ff9c !important; } /* Понеділок - світло-синій */
+        .day-0 { background: #e3f2fd !important; } /* Понеділок - світло-синій */
         .day-1 { background: #f3e5f5 !important; } /* Вівторок - світло-фіолетовий */
-        .day-2 { background: #94ff9c !important; } /* Середа - світло-зелений */
+        .day-2 { background: #e8f5e9 !important; } /* Середа - світло-зелений */
         .day-3 { background: #fff3e0 !important; } /* Четвер - світло-помаранчевий */
-        .day-4 { background: #94ff9c !important; } /* П'ятниця - світло-рожевий */
+        .day-4 { background: #fce4ec !important; } /* П'ятниця - світло-рожевий */
         
         .schedule-table td.lesson-number {
             position: sticky;
@@ -809,10 +813,12 @@
                 <button class="btn btn-success" onclick="saveData()">💾 Зберегти розклад (JSON)</button>
                 <button class="btn btn-info" onclick="document.getElementById('fileInput').click()">📂 Завантажити розклад (JSON)</button>
                 <button class="btn btn-success" onclick="exportToExcel()">📊 Експорт в Excel</button>
+                <button class="btn btn-info" onclick="document.getElementById('excelInput').click()">📥 Імпорт з Excel</button>
                 <button class="btn btn-danger" onclick="clearDemoData()">🗑️ Видалити демо-дані</button>
                 <button class="btn btn-info" onclick="checkTeacherConflicts()">🔍 Перевірка на збіг</button>
                 <button class="btn btn-info" onclick="toggleMagnifier()">🔎 Лупа</button>
                 <input type="file" id="fileInput" accept=".json" onchange="loadData(event)">
+                <input type="file" id="excelInput" accept=".xlsx,.xls" onchange="importFromExcel(event)">
             </div>
             <div id="scheduleContent"></div>
             
@@ -2182,6 +2188,218 @@
                 alert('❌ Помилка при експорті в Excel: ' + error.message);
                 console.error('Помилка експорту:', error);
             }
+        }
+
+        function importFromExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Перевіряємо чи завантажена бібліотека SheetJS
+            if (typeof XLSX === 'undefined') {
+                alert('⏳ Завантаження бібліотеки Excel... Спробуйте ще раз через секунду.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+
+                    // Перевіряємо чи є аркуш "Розклад"
+                    if (!workbook.SheetNames.includes('Розклад')) {
+                        alert('⚠️ У файлі не знайдено аркуш "Розклад". Переконайтеся, що файл створено через функцію експорту.');
+                        return;
+                    }
+
+                    const scheduleSheet = workbook.Sheets['Розклад'];
+                    const scheduleData = XLSX.utils.sheet_to_json(scheduleSheet, { header: 1, defval: '' });
+
+                    if (scheduleData.length < 2) {
+                        alert('⚠️ Файл не містить даних розкладу.');
+                        return;
+                    }
+
+                    // Зчитуємо заголовки (назви класів)
+                    const headers = scheduleData[0];
+                    const classNames = headers.slice(2); // Пропускаємо "День" та "Урок"
+
+                    if (classNames.length === 0) {
+                        alert('⚠️ У файлі не знайдено класів.');
+                        return;
+                    }
+
+                    // Створюємо нові класи
+                    const newClasses = [];
+                    const classMapping = {}; // Відповідність назва -> id
+                    
+                    classNames.forEach(className => {
+                        if (className && className.trim()) {
+                            const newClass = {
+                                id: nextClassId++,
+                                name: className.trim()
+                            };
+                            newClasses.push(newClass);
+                            classMapping[className.trim()] = newClass.id;
+                        }
+                    });
+
+                    // Імпортуємо предмети якщо є аркуш "Предмети"
+                    const newSubjects = [];
+                    const subjectMapping = {}; // Відповідність назва-вчитель -> id
+                    
+                    if (workbook.SheetNames.includes('Предмети')) {
+                        const subjectsSheet = workbook.Sheets['Предмети'];
+                        const subjectsData = XLSX.utils.sheet_to_json(subjectsSheet, { header: 1, defval: '' });
+                        
+                        // Пропускаємо заголовок
+                        for (let i = 1; i < subjectsData.length; i++) {
+                            const row = subjectsData[i];
+                            if (row[0] && row[1]) { // Назва та вчитель
+                                const subjectName = row[0].toString().trim();
+                                const teacherName = row[1].toString().trim();
+                                const hours = parseInt(row[2]) || 1;
+                                
+                                const newSubject = {
+                                    id: nextSubjectId++,
+                                    name: subjectName,
+                                    teacher: teacherName,
+                                    hours: hours
+                                };
+                                
+                                newSubjects.push(newSubject);
+                                subjectMapping[`${subjectName}|${teacherName}`] = newSubject;
+                            }
+                        }
+                    }
+
+                    // Парсимо розклад
+                    const newSchedules = {};
+                    newClasses.forEach(cls => {
+                        newSchedules[cls.id] = {};
+                    });
+
+                    let currentDay = null;
+                    let dayIndex = -1;
+
+                    for (let i = 1; i < scheduleData.length; i++) {
+                        const row = scheduleData[i];
+                        
+                        // Якщо є день - це початок нового дня
+                        if (row[0] && row[0].trim()) {
+                            currentDay = row[0].trim();
+                            dayIndex = days.indexOf(currentDay);
+                            if (dayIndex === -1) continue;
+                        }
+
+                        if (dayIndex === -1) continue;
+
+                        const lessonNum = parseInt(row[1]) - 1; // Номер уроку (0-based)
+                        if (isNaN(lessonNum) || lessonNum < 0) continue;
+
+                        // Обробляємо кожен клас
+                        classNames.forEach((className, classIndex) => {
+                            const cellValue = row[2 + classIndex];
+                            if (!cellValue || !cellValue.trim()) return;
+
+                            const classId = classMapping[className.trim()];
+                            if (!classId) return;
+
+                            const key = `${dayIndex}-${lessonNum}`;
+                            
+                            // Парсимо вміст клітинки
+                            const lessons = parseLessonCell(cellValue, newSubjects, subjectMapping);
+                            
+                            if (lessons.length === 1) {
+                                newSchedules[classId][key] = lessons[0];
+                            } else if (lessons.length > 1) {
+                                newSchedules[classId][key] = lessons;
+                            }
+                        });
+                    }
+
+                    // Підтвердження імпорту
+                    const confirmation = confirm(
+                        `📥 Імпорт з Excel\n\n` +
+                        `Знайдено:\n` +
+                        `• Класів: ${newClasses.length}\n` +
+                        `• Предметів: ${newSubjects.length}\n\n` +
+                        `Увага: Поточні дані будуть замінені!\n\n` +
+                        `Продовжити імпорт?`
+                    );
+
+                    if (!confirmation) return;
+
+                    // Замінюємо дані
+                    classes = newClasses;
+                    subjects = newSubjects.length > 0 ? newSubjects : subjects; // Якщо предмети не імпортовані, залишаємо існуючі
+                    schedules = newSchedules;
+
+                    // Оновлюємо інтерфейс
+                    renderClasses();
+                    renderSubjects();
+                    renderSchedules();
+
+                    alert(`✅ Розклад успішно імпортовано!\n\nКласів: ${newClasses.length}\nПредметів: ${newSubjects.length}`);
+
+                } catch (error) {
+                    alert('❌ Помилка при імпорті з Excel: ' + error.message);
+                    console.error('Помилка імпорту:', error);
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+            
+            // Очищаємо input
+            event.target.value = '';
+        }
+
+        function parseLessonCell(cellValue, newSubjects, subjectMapping) {
+            const lessons = [];
+            
+            // Розділяємо по "---" якщо є кілька уроків
+            const lessonTexts = cellValue.split('---').map(t => t.trim());
+            
+            lessonTexts.forEach(lessonText => {
+                if (!lessonText) return;
+                
+                // Парсимо формат: "Назва предмету\n(Вчитель)"
+                const match = lessonText.match(/^(.+?)\s*[\n\r]+\s*\((.+?)\)\s*$/);
+                
+                if (match) {
+                    const subjectName = match[1].trim();
+                    const teacherName = match[2].trim();
+                    
+                    // Шукаємо предмет в імпортованих або створюємо новий
+                    const key = `${subjectName}|${teacherName}`;
+                    let subject = subjectMapping[key];
+                    
+                    if (!subject) {
+                        // Шукаємо серед існуючих предметів
+                        subject = newSubjects.find(s => s.name === subjectName && s.teacher === teacherName);
+                        
+                        if (!subject) {
+                            // Створюємо новий предмет
+                            subject = {
+                                id: nextSubjectId++,
+                                name: subjectName,
+                                teacher: teacherName,
+                                hours: 1
+                            };
+                            newSubjects.push(subject);
+                            subjectMapping[key] = subject;
+                        }
+                    }
+                    
+                    lessons.push({
+                        subjectId: subject.id,
+                        name: subject.name,
+                        teacher: subject.teacher
+                    });
+                }
+            });
+            
+            return lessons;
         }
 
         // Функціонал лупи
