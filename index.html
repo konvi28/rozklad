@@ -6,7 +6,7 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 1.981</title>
+    <title>Розклад уроків v 1.983</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
 
@@ -447,6 +447,13 @@
             min-width: 30px;
             max-width: 30px;
         }
+        
+        /* Кольори для днів тижня */
+        .day-0 { background: #e3f2fd !important; } /* Понеділок - світло-синій */
+        .day-1 { background: #f3e5f5 !important; } /* Вівторок - світло-фіолетовий */
+        .day-2 { background: #e8f5e9 !important; } /* Середа - світло-зелений */
+        .day-3 { background: #fff3e0 !important; } /* Четвер - світло-помаранчевий */
+        .day-4 { background: #fce4ec !important; } /* П'ятниця - світло-рожевий */
         
         .schedule-table td.lesson-number {
             position: sticky;
@@ -1159,7 +1166,7 @@
                     schedulesHtml += `<tr>`;
                     
                     if (i === 1) {
-                        schedulesHtml += `<td rowspan="${lessons}" style="font-weight: 600; background: #e9ecef; vertical-align: middle;">${day}</td>`;
+                        schedulesHtml += `<td rowspan="${lessons}" class="day-${dayIndex}" style="font-weight: 600; vertical-align: middle;">${day}</td>`;
                     }
                     
                     schedulesHtml += `<td class="lesson-number">${i}</td>`;
