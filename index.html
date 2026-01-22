@@ -6,7 +6,7 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 1.981</title>
+    <title>Розклад уроків v 1.982</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
 
@@ -217,6 +217,11 @@
             top: 0;
             z-index: 20;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            scroll-margin: 0;
+        }
+
+        .save-load-section * {
+            scroll-margin: 0;
         }
 
         .save-load-section h3 {
@@ -591,6 +596,11 @@
             position: sticky;
             top: 80px;
             z-index: 15;
+            scroll-margin: 0;
+        }
+        
+        .available-tiles-section * {
+            scroll-margin: 0;
         }
         
         .available-tiles-section::-webkit-scrollbar {
@@ -1193,6 +1203,11 @@
         let draggedSubjectId = null;
         let fromSchedule = false;
         let originalSlot = null;
+        let savedScrollPositions = { 
+            content: 0, 
+            wrapper: { top: 0, left: 0 },
+            availableTiles: 0
+        };
 
         function attachTileDragHandlers() {
             const tiles = document.querySelectorAll('.lesson-tile[draggable="true"]');
@@ -1251,6 +1266,18 @@
         }
 
         function handleTileDragStart(e) {
+            // Зберігаємо позиції прокрутки при початку перетягування
+            const scheduleContent = document.getElementById('scheduleContent');
+            const scheduleWrapper = document.querySelector('.schedule-wrapper');
+            const availableTiles = document.querySelector('.available-tiles-section');
+            
+            if (scheduleContent) savedScrollPositions.content = scheduleContent.scrollTop;
+            if (scheduleWrapper) {
+                savedScrollPositions.wrapper.top = scheduleWrapper.scrollTop;
+                savedScrollPositions.wrapper.left = scheduleWrapper.scrollLeft;
+            }
+            if (availableTiles) savedScrollPositions.availableTiles = availableTiles.scrollTop;
+            
             draggedElement = e.target;
             draggedSubjectId = parseInt(e.target.dataset.subjectId);
             fromSchedule = false;
@@ -1261,6 +1288,18 @@
         }
 
         function handleCardDragStart(e) {
+            // Зберігаємо позиції прокрутки при початку перетягування
+            const scheduleContent = document.getElementById('scheduleContent');
+            const scheduleWrapper = document.querySelector('.schedule-wrapper');
+            const availableTiles = document.querySelector('.available-tiles-section');
+            
+            if (scheduleContent) savedScrollPositions.content = scheduleContent.scrollTop;
+            if (scheduleWrapper) {
+                savedScrollPositions.wrapper.top = scheduleWrapper.scrollTop;
+                savedScrollPositions.wrapper.left = scheduleWrapper.scrollLeft;
+            }
+            if (availableTiles) savedScrollPositions.availableTiles = availableTiles.scrollTop;
+            
             draggedElement = e.target;
             draggedSubjectId = parseInt(e.target.dataset.subjectId);
             fromSchedule = true;
@@ -1284,6 +1323,17 @@
             e.preventDefault();
             e.currentTarget.classList.add('drag-over');
             e.dataTransfer.dropEffect = 'move';
+            
+            // Відновлюємо позиції прокрутки під час перетягування
+            const scheduleContent = document.getElementById('scheduleContent');
+            const availableTiles = document.querySelector('.available-tiles-section');
+            
+            if (scheduleContent && savedScrollPositions.content !== scheduleContent.scrollTop) {
+                scheduleContent.scrollTop = savedScrollPositions.content;
+            }
+            if (availableTiles && savedScrollPositions.availableTiles !== availableTiles.scrollTop) {
+                availableTiles.scrollTop = savedScrollPositions.availableTiles;
+            }
         }
 
         function handleSlotDragLeave(e) {
@@ -1298,6 +1348,17 @@
                 lessonCard.classList.add('drag-over');
             }
             e.dataTransfer.dropEffect = 'move';
+            
+            // Відновлюємо позиції прокрутки під час перетягування
+            const scheduleContent = document.getElementById('scheduleContent');
+            const availableTiles = document.querySelector('.available-tiles-section');
+            
+            if (scheduleContent && savedScrollPositions.content !== scheduleContent.scrollTop) {
+                scheduleContent.scrollTop = savedScrollPositions.content;
+            }
+            if (availableTiles && savedScrollPositions.availableTiles !== availableTiles.scrollTop) {
+                availableTiles.scrollTop = savedScrollPositions.availableTiles;
+            }
         }
 
         function handleTdDragLeave(e) {
@@ -1329,10 +1390,12 @@
             
             const schedule = schedules[classId];
             
-            // Зберігаємо позицію прокрутки
+            // Зберігаємо позицію прокрутки ОБОХ контейнерів
             const scheduleWrapper = document.querySelector('.schedule-wrapper');
-            const scrollTop = scheduleWrapper ? scheduleWrapper.scrollTop : 0;
-            const scrollLeft = scheduleWrapper ? scheduleWrapper.scrollLeft : 0;
+            const scheduleContent = document.getElementById('scheduleContent');
+            const wrapperScrollTop = scheduleWrapper ? scheduleWrapper.scrollTop : 0;
+            const wrapperScrollLeft = scheduleWrapper ? scheduleWrapper.scrollLeft : 0;
+            const contentScrollTop = scheduleContent ? scheduleContent.scrollTop : 0;
             
             // Якщо переміщуємо з розкладу
             if (fromSchedule && originalSlot) {
@@ -1380,14 +1443,23 @@
             renderSchedules();
             renderSubjects();
             
-            // Відновлюємо позицію прокрутки після рендерингу
+            // Відновлюємо позицію прокрутки після рендерингу ДЛЯ ВСІХ КОНТЕЙНЕРІВ
             setTimeout(() => {
                 const newScheduleWrapper = document.querySelector('.schedule-wrapper');
+                const newScheduleContent = document.getElementById('scheduleContent');
+                const newAvailableTiles = document.querySelector('.available-tiles-section');
+                
                 if (newScheduleWrapper) {
-                    newScheduleWrapper.scrollTop = scrollTop;
-                    newScheduleWrapper.scrollLeft = scrollLeft;
+                    newScheduleWrapper.scrollTop = wrapperScrollTop;
+                    newScheduleWrapper.scrollLeft = wrapperScrollLeft;
                 }
-            }, 50);
+                if (newScheduleContent) {
+                    newScheduleContent.scrollTop = contentScrollTop;
+                }
+                if (newAvailableTiles && savedScrollPositions.availableTiles !== undefined) {
+                    newAvailableTiles.scrollTop = savedScrollPositions.availableTiles;
+                }
+            }, 0);
         }
 
         function handleSlotDrop(e) {
@@ -1402,10 +1474,12 @@
             
             const schedule = schedules[classId];
             
-            // Зберігаємо позицію прокрутки
+            // Зберігаємо позицію прокрутки ОБОХ контейнерів
             const scheduleWrapper = document.querySelector('.schedule-wrapper');
-            const scrollTop = scheduleWrapper ? scheduleWrapper.scrollTop : 0;
-            const scrollLeft = scheduleWrapper ? scheduleWrapper.scrollLeft : 0;
+            const scheduleContent = document.getElementById('scheduleContent');
+            const wrapperScrollTop = scheduleWrapper ? scheduleWrapper.scrollTop : 0;
+            const wrapperScrollLeft = scheduleWrapper ? scheduleWrapper.scrollLeft : 0;
+            const contentScrollTop = scheduleContent ? scheduleContent.scrollTop : 0;
             
             // Якщо переміщуємо з розкладу
             if (fromSchedule && originalSlot) {
@@ -1453,12 +1527,21 @@
             renderSchedules();
             renderSubjects();
             
-            // Відновлюємо позицію прокрутки після рендерингу
+            // Відновлюємо позицію прокрутки після рендерингу ДЛЯ ВСІХ КОНТЕЙНЕРІВ
             setTimeout(() => {
                 const newScheduleWrapper = document.querySelector('.schedule-wrapper');
+                const newScheduleContent = document.getElementById('scheduleContent');
+                const newAvailableTiles = document.querySelector('.available-tiles-section');
+                
                 if (newScheduleWrapper) {
-                    newScheduleWrapper.scrollTop = scrollTop;
-                    newScheduleWrapper.scrollLeft = scrollLeft;
+                    newScheduleWrapper.scrollTop = wrapperScrollTop;
+                    newScheduleWrapper.scrollLeft = wrapperScrollLeft;
+                }
+                if (newScheduleContent) {
+                    newScheduleContent.scrollTop = contentScrollTop;
+                }
+                if (newAvailableTiles && savedScrollPositions.availableTiles !== undefined) {
+                    newAvailableTiles.scrollTop = savedScrollPositions.availableTiles;
                 }
             }, 0);
         }
@@ -1563,6 +1646,10 @@
 
         function clearDemoData() {
             if (confirm('Ви впевнені, що хочете видалити всі дані (класи, предмети, розклад)?')) {
+                // Зберігаємо позицію прокрутки
+                const scheduleContent = document.getElementById('scheduleContent');
+                const scrollTop = scheduleContent ? scheduleContent.scrollTop : 0;
+                
                 classes = [];
                 subjects = [];
                 schedules = {};
@@ -1572,6 +1659,13 @@
                 renderClasses();
                 renderSubjects();
                 renderSchedules();
+                
+                // Відновлюємо позицію прокрутки
+                setTimeout(() => {
+                    if (scheduleContent) {
+                        scheduleContent.scrollTop = scrollTop;
+                    }
+                }, 0);
                 
                 alert('✅ Всі дані успішно видалено!');
             }
@@ -1614,6 +1708,10 @@
         }
 
         function saveData() {
+            // Зберігаємо позицію прокрутки
+            const scheduleContent = document.getElementById('scheduleContent');
+            const scrollTop = scheduleContent ? scheduleContent.scrollTop : 0;
+            
             const data = {
                 classes: classes,
                 subjects: subjects,
@@ -1635,6 +1733,13 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+            
+            // Відновлюємо позицію прокрутки
+            setTimeout(() => {
+                if (scheduleContent) {
+                    scheduleContent.scrollTop = scrollTop;
+                }
+            }, 0);
             
             alert('✅ Розклад успішно збережено!');
         }
@@ -1680,6 +1785,10 @@
 
         // Функція експорту в Excel
         function checkTeacherConflicts() {
+            // Зберігаємо позицію прокрутки
+            const scheduleContent = document.getElementById('scheduleContent');
+            const scrollTop = scheduleContent ? scheduleContent.scrollTop : 0;
+            
             const conflicts = [];
             
             // Перевіряємо кожен день та урок
@@ -1722,6 +1831,13 @@
                 }
             });
             
+            // Відновлюємо позицію прокрутки перед показом alert
+            setTimeout(() => {
+                if (scheduleContent) {
+                    scheduleContent.scrollTop = scrollTop;
+                }
+            }, 0);
+            
             // Відображаємо результати
             if (conflicts.length === 0) {
                 alert('✅ Збігів не виявлено! Розклад складено правильно.');
@@ -1734,17 +1850,34 @@
                 });
                 alert(message);
             }
+            
+            // Відновлюємо позицію прокрутки після закриття alert
+            setTimeout(() => {
+                if (scheduleContent) {
+                    scheduleContent.scrollTop = scrollTop;
+                }
+            }, 0);
         }
 
         function exportToExcel() {
+            // Зберігаємо позицію прокрутки
+            const scheduleContent = document.getElementById('scheduleContent');
+            const scrollTop = scheduleContent ? scheduleContent.scrollTop : 0;
+            
             if (classes.length === 0 || subjects.length === 0) {
                 alert('⚠️ Немає даних для експорту. Додайте класи та предмети.');
+                setTimeout(() => {
+                    if (scheduleContent) scheduleContent.scrollTop = scrollTop;
+                }, 0);
                 return;
             }
 
             // Перевіряємо чи завантажена бібліотека SheetJS
             if (typeof XLSX === 'undefined') {
                 alert('⏳ Завантаження бібліотеки Excel... Спробуйте ще раз через секунду.');
+                setTimeout(() => {
+                    if (scheduleContent) scheduleContent.scrollTop = scrollTop;
+                }, 0);
                 return;
             }
 
@@ -1957,8 +2090,22 @@
                 const fileName = `rozklad_${new Date().toISOString().split('T')[0]}.xlsx`;
                 XLSX.writeFile(wb, fileName);
 
+                // Відновлюємо позицію прокрутки
+                setTimeout(() => {
+                    if (scheduleContent) {
+                        scheduleContent.scrollTop = scrollTop;
+                    }
+                }, 0);
+
                 alert('✅ Розклад успішно експортовано в Excel!');
             } catch (error) {
+                // Відновлюємо позицію прокрутки у випадку помилки
+                setTimeout(() => {
+                    if (scheduleContent) {
+                        scheduleContent.scrollTop = scrollTop;
+                    }
+                }, 0);
+                
                 alert('❌ Помилка при експорті в Excel: ' + error.message);
                 console.error('Помилка експорту:', error);
             }
