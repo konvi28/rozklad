@@ -6,7 +6,7 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 3.5.2</title>
+    <title>Розклад уроків v 3.6.1</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
 
@@ -938,15 +938,12 @@
         <div id="scheduleTab" class="tab-content">
             <div class="save-load-section">
                 <h3>💾 Збереження та завантаження</h3>
-                <button class="btn btn-success" onclick="saveData()">💾 Зберегти розклад (JSON)</button>
-                <button class="btn btn-info" onclick="document.getElementById('fileInput').click()">📂 Завантажити розклад (JSON)</button>
+                <button class="btn btn-info" onclick="downloadScheduleTemplate()">📄 Завантажити шаблон</button>
                 <button class="btn btn-success" onclick="exportToExcel()">📊 Експорт в Excel</button>
                 <button class="btn btn-info" onclick="document.getElementById('excelInput').click()">📥 Імпорт з Excel</button>
-                <button class="btn btn-info" onclick="downloadScheduleTemplate()">📄 Завантажити шаблон</button>
                 <button class="btn btn-danger" onclick="clearDemoData()">🗑️ Видалити дані</button>
                 <button class="btn btn-info" onclick="checkTeacherConflicts()">🔍 Перевірка на збіг</button>
                 <button class="btn btn-info" onclick="toggleMagnifier()">🔎 Лупа</button>
-                <input type="file" id="fileInput" accept=".json" onchange="loadData(event)">
                 <input type="file" id="excelInput" accept=".xlsx,.xls" onchange="importFromExcel(event)">
             </div>
             <div id="scheduleContent"></div>
@@ -2248,88 +2245,6 @@
                     }
                 }, 0);
             }
-        }
-
-        function saveData() {
-            // Зберігаємо позицію прокрутки
-            const scheduleContent = document.getElementById('scheduleContent');
-            const scrollTop = scheduleContent ? scheduleContent.scrollTop : 0;
-            
-            const data = {
-                classes: classes,
-                subjects: subjects,
-                schedules: schedules,
-                nextClassId: nextClassId,
-                nextSubjectId: nextSubjectId,
-                version: '1.0',
-                savedDate: new Date().toISOString()
-            };
-            
-            const jsonStr = JSON.stringify(data, null, 2);
-            const blob = new Blob([jsonStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `rozklad_${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            // Відновлюємо позицію прокрутки
-            setTimeout(() => {
-                if (scheduleContent) {
-                    scheduleContent.scrollTop = scrollTop;
-                }
-            }, 0);
-            
-            alert('✅ Розклад успішно збережено!');
-        }
-
-        function loadData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    
-                    // Перевірка версії
-                    if (!data.version) {
-                        alert('⚠️ Файл не містить інформації про версію. Завантаження може працювати некоректно.');
-                    }
-                    
-                    // Завантаження даних
-                    classes = data.classes || [];
-                    subjects = data.subjects || [];
-                    schedules = data.schedules || {};
-                    nextClassId = data.nextClassId || 1;
-                    nextSubjectId = data.nextSubjectId || 1;
-                    
-                    // Оновлення інтерфейсу
-                    renderClasses();
-                    renderSubjects();
-                    renderSchedules();
-                    
-                    // Автозбереження
-                    saveToLocalStorage();
-                    
-                    // Оновлюємо список вчителів в звітах
-                    updateTeachersList();
-                    
-                    const savedDate = data.savedDate ? new Date(data.savedDate).toLocaleString('uk-UA') : 'невідома';
-                    alert(`✅ Розклад успішно завантажено!\nДата збереження: ${savedDate}`);
-                } catch (error) {
-                    alert('❌ Помилка при завантаженні файлу. Переконайтеся, що файл не пошкоджений.');
-                    console.error('Помилка завантаження:', error);
-                }
-            };
-            reader.readAsText(file);
-            
-            // Очищаємо input для можливості завантажити той самий файл знову
-            event.target.value = '';
         }
 
         // Функція експорту в Excel
