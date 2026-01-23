@@ -6,7 +6,7 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 3.5.1</title>
+    <title>Розклад уроків v 3.5.2</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
 
@@ -2035,7 +2035,11 @@
             if (needsSection && !hasSection) {
                 // Потрібен блок, але його немає - повний ререндеринг
                 renderSchedules();
-                return; // Виходимо, бо renderSchedules все оновив
+                // ТАКОЖ ОНОВЛЮЄМО ВКЛАДКУ ПРЕДМЕТІВ
+                renderSubjects();
+                // Автозбереження
+                saveToLocalStorage();
+                return; // Виходимо, бо renderSchedules і renderSubjects все оновили
             } else if (!needsSection && hasSection) {
                 // Блок є, але він більше не потрібен - видаляємо його
                 availableTilesSection.remove();
