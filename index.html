@@ -6,7 +6,7 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 3.3</title>
+    <title>Розклад уроків v 3.4</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
 
@@ -3589,10 +3589,41 @@
                         alert(`✅ Предмети замінено!\n\nІмпортовано: ${newSubjects.length} предметів`);
                     } else {
                         // ДОДАТИ - додаємо до існуючих
-                        subjects = subjects.concat(newSubjects);
+                        // Створюємо мапу старих предметів для оновлення ID в розкладі
+                        const subjectMap = {}; // key: "назва|вчитель", value: {oldId, newId}
+                        
+                        // Перевіряємо чи є дублікати
+                        newSubjects.forEach(newSubject => {
+                            const key = `${newSubject.name}|${newSubject.teacher}`;
+                            const existingSubject = subjects.find(s => 
+                                s.name === newSubject.name && s.teacher === newSubject.teacher
+                            );
+                            
+                            if (existingSubject) {
+                                // Якщо предмет вже існує - оновлюємо його години
+                                existingSubject.hours = newSubject.hours;
+                                subjectMap[key] = {
+                                    oldId: existingSubject.id,
+                                    newId: existingSubject.id,
+                                    updated: true
+                                };
+                            } else {
+                                // Новий предмет - додаємо
+                                subjects.push(newSubject);
+                                subjectMap[key] = {
+                                    oldId: null,
+                                    newId: newSubject.id,
+                                    updated: false
+                                };
+                            }
+                        });
+                        
                         nextSubjectId = tempSubjectId;
                         
-                        alert(`✅ Предмети додано!\n\nДодано: ${newSubjects.length} нових предметів\nВсього: ${subjects.length} предметів`);
+                        const added = Object.values(subjectMap).filter(m => !m.updated).length;
+                        const updated = Object.values(subjectMap).filter(m => m.updated).length;
+                        
+                        alert(`✅ Предмети оброблено!\n\nДодано нових: ${added}\nОновлено існуючих: ${updated}\nВсього: ${subjects.length} предметів`);
                     }
 
                     // Оновлюємо інтерфейс
