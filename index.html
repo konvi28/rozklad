@@ -6,7 +6,7 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 3.6.1</title>
+    <title>Розклад уроків v 3.7</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
 
@@ -866,6 +866,13 @@
         .magnifier-active * {
             cursor: none !important;
         }
+
+        /* Приховуємо кнопку лупи на мобільних пристроях */
+        @media (max-width: 768px), (pointer: coarse) {
+            #magnifierButton {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -943,7 +950,7 @@
                 <button class="btn btn-info" onclick="document.getElementById('excelInput').click()">📥 Імпорт з Excel</button>
                 <button class="btn btn-danger" onclick="clearDemoData()">🗑️ Видалити дані</button>
                 <button class="btn btn-info" onclick="checkTeacherConflicts()">🔍 Перевірка на збіг</button>
-                <button class="btn btn-info" onclick="toggleMagnifier()">🔎 Лупа</button>
+                <button class="btn btn-info" id="magnifierButton" onclick="toggleMagnifier()">🔎 Лупа</button>
                 <input type="file" id="excelInput" accept=".xlsx,.xls" onchange="importFromExcel(event)">
             </div>
             <div id="scheduleContent"></div>
