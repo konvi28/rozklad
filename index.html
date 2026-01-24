@@ -6,7 +6,7 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 3.7.1</title>
+    <title>Розклад уроків v 3.7.2</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
 
@@ -893,7 +893,7 @@
             <h2>Додати новий клас</h2>
             <div class="form-group">
                 <label for="className">Назва класу:</label>
-                <input type="text" id="className" placeholder="Наприклад: 5-А">
+                <input type="text" id="className" placeholder="Наприклад: 5-А" onkeypress="if(event.key === 'Enter') addClass()">
             </div>
             <button class="btn btn-primary" onclick="addClass()">Додати клас</button>
             
@@ -905,15 +905,15 @@
             <h2>Додати новий предмет</h2>
             <div class="form-group">
                 <label for="subjectName">Назва предмету:</label>
-                <input type="text" id="subjectName" placeholder="Наприклад: Математика">
+                <input type="text" id="subjectName" placeholder="Наприклад: Математика" onkeypress="if(event.key === 'Enter') addSubject()">
             </div>
             <div class="form-group">
                 <label for="teacherName">Ім'я вчителя:</label>
-                <input type="text" id="teacherName" placeholder="Наприклад: Іванов І.І.">
+                <input type="text" id="teacherName" placeholder="Наприклад: Іванов І.І." onkeypress="if(event.key === 'Enter') addSubject()">
             </div>
             <div class="form-group">
                 <label for="hoursPerWeek">Кількість годин на тиждень:</label>
-                <input type="number" id="hoursPerWeek" min="1" max="20" placeholder="Наприклад: 5">
+                <input type="number" id="hoursPerWeek" min="1" max="20" placeholder="Наприклад: 5" onkeypress="if(event.key === 'Enter') addSubject()">
             </div>
             <button class="btn btn-primary" onclick="addSubject()">Додати предмет</button>
             
