@@ -6,7 +6,7 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 3.7</title>
+    <title>Розклад уроків v 3.7.1</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
 
@@ -918,9 +918,9 @@
             <button class="btn btn-primary" onclick="addSubject()">Додати предмет</button>
             
             <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-info" onclick="downloadSubjectsTemplate()">📄 Завантажити шаблон</button>
                 <button class="btn btn-success" onclick="exportSubjectsToExcel()">📊 Експорт предметів в Excel</button>
                 <button class="btn btn-info" onclick="document.getElementById('subjectsExcelInput').click()">📥 Імпорт предметів з Excel</button>
-                <button class="btn btn-info" onclick="downloadSubjectsTemplate()">📄 Завантажити шаблон</button>
                 <input type="file" id="subjectsExcelInput" accept=".xlsx,.xls" onchange="importSubjectsFromExcel(event)" style="display: none;">
             </div>
             
@@ -1311,7 +1311,7 @@
                 <div class="class-card">
                     <h3>${cls.name}</h3>
                     <div class="class-card-actions">
-                        <button class="btn btn-primary" onclick="editClass(${cls.id})" style="padding: 8px 12px;">✏️ Редагувати</button>
+                        <button class="btn btn-primary" onclick="editClass(${cls.id})">✏️ Редагувати</button>
                         <button class="btn btn-danger" onclick="removeClass(${cls.id})">Видалити</button>
                     </div>
                 </div>
@@ -1383,7 +1383,7 @@
                                     <button class="btn-hour-control" onclick="changeSubjectHours(${subject.id}, -1, event);" title="Зменшити кількість годин">−</button>
                                     <button class="btn-hour-control" onclick="changeSubjectHours(${subject.id}, 1, event);" title="Збільшити кількість годин">+</button>
                                 </div>
-                                <button class="btn btn-primary" onclick="editSubject(${subject.id})" style="padding: 8px 12px;">✏️ Редагувати</button>
+                                <button class="btn btn-primary" onclick="editSubject(${subject.id})">✏️ Редагувати</button>
                                 <button class="btn btn-danger" onclick="removeSubject(${subject.id})">Видалити</button>
                             </div>
                         </div>
