@@ -6,7 +6,7 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 4.1</title>
+    <title>Розклад уроків v 4.2</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
@@ -1561,7 +1561,8 @@
                                              data-class-id="${cls.id}"
                                              data-day="${dayIndex}"
                                              data-lesson="${i-1}"
-                                             style="background: ${color}; position: relative; margin-bottom: ${idx < lesson.length - 1 ? '4px' : '0'};">
+                                             ondblclick="editLessonInSchedule(${cls.id}, ${dayIndex}, ${i-1}, ${les.subjectId})"
+                                             style="background: ${color}; position: relative; margin-bottom: ${idx < lesson.length - 1 ? '4px' : '0'}; cursor: pointer;">
                                             <button class="delete-lesson-btn" onclick="deleteLesson(${cls.id}, ${dayIndex}, ${i-1}, ${les.subjectId}); event.stopPropagation();" title="Видалити урок">×</button>
                                             <div class="lesson-card-subject">${les.name}</div>
                                             <div class="lesson-card-teacher">${les.teacher}</div>
@@ -1579,7 +1580,8 @@
                                          data-class-id="${cls.id}"
                                          data-day="${dayIndex}"
                                          data-lesson="${i-1}"
-                                         style="background: ${color}; position: relative;">
+                                         ondblclick="editLessonInSchedule(${cls.id}, ${dayIndex}, ${i-1})"
+                                         style="background: ${color}; position: relative; cursor: pointer;">
                                         <button class="delete-lesson-btn" onclick="deleteLesson(${cls.id}, ${dayIndex}, ${i-1}); event.stopPropagation();" title="Видалити урок">×</button>
                                         <div class="lesson-card-subject">${lesson.name}</div>
                                         <div class="lesson-card-teacher">${lesson.teacher}</div>
@@ -2224,6 +2226,111 @@
                 
                 alert('✅ Всі дані успішно видалено!');
             }
+        }
+
+        // Функція редагування уроку прямо в розкладі
+        function editLessonInSchedule(classId, day, lessonNum, subjectId = null) {
+            const key = `${day}-${lessonNum}`;
+            
+            if (!schedules[classId] || !schedules[classId][key]) {
+                return;
+            }
+            
+            // Зберігаємо позицію прокрутки
+            const scheduleWrapper = document.querySelector('.schedule-wrapper');
+            const scrollTop = scheduleWrapper ? scheduleWrapper.scrollTop : 0;
+            const scrollLeft = scheduleWrapper ? scheduleWrapper.scrollLeft : 0;
+            
+            const slot = schedules[classId][key];
+            let lessonToEdit = null;
+            
+            // Знаходимо урок для редагування
+            if (Array.isArray(slot) && subjectId !== null) {
+                lessonToEdit = slot.find(l => l.subjectId === subjectId);
+            } else if (!Array.isArray(slot)) {
+                lessonToEdit = slot;
+            }
+            
+            if (!lessonToEdit) {
+                return;
+            }
+            
+            // Запитуємо нову назву предмету
+            const newSubjectName = prompt('Введіть нову назву предмету:', lessonToEdit.name);
+            
+            if (newSubjectName === null) {
+                return; // Користувач натиснув "Скасувати"
+            }
+            
+            if (!newSubjectName || !newSubjectName.trim()) {
+                alert('⚠️ Назва предмету не може бути порожньою');
+                return;
+            }
+            
+            // Запитуємо нове ім'я вчителя
+            const newTeacherName = prompt('Введіть нове ім\'я вчителя:', lessonToEdit.teacher);
+            
+            if (newTeacherName === null) {
+                return; // Користувач натиснув "Скасувати"
+            }
+            
+            if (!newTeacherName || !newTeacherName.trim()) {
+                alert('⚠️ Ім\'я вчителя не може бути порожнім');
+                return;
+            }
+            
+            // Оновлюємо дані уроку
+            lessonToEdit.name = newSubjectName.trim();
+            lessonToEdit.teacher = newTeacherName.trim();
+            
+            // Також оновлюємо в об'єкті subject, якщо він існує
+            const subject = subjects.find(s => s.id === lessonToEdit.subjectId);
+            if (subject) {
+                const oldSubjectName = subject.name;
+                const oldTeacherName = subject.teacher;
+                
+                subject.name = newSubjectName.trim();
+                subject.teacher = newTeacherName.trim();
+                
+                // Оновлюємо всі інші уроки цього предмету в розкладі
+                Object.keys(schedules).forEach(cId => {
+                    Object.keys(schedules[cId]).forEach(k => {
+                        const les = schedules[cId][k];
+                        if (Array.isArray(les)) {
+                            les.forEach(l => {
+                                if (l.subjectId === subject.id) {
+                                    l.name = newSubjectName.trim();
+                                    l.teacher = newTeacherName.trim();
+                                }
+                            });
+                        } else if (les && les.subjectId === subject.id) {
+                            les.name = newSubjectName.trim();
+                            les.teacher = newTeacherName.trim();
+                        }
+                    });
+                });
+                
+                console.log(`✅ Предмет оновлено: "${oldSubjectName}" (${oldTeacherName}) → "${newSubjectName.trim()}" (${newTeacherName.trim()})`);
+            }
+            
+            // Оновлюємо інтерфейс
+            renderSchedules();
+            renderSubjects();
+            
+            // Автозбереження
+            saveToLocalStorage();
+            
+            // Оновлюємо список вчителів
+            updateTeachersList();
+            
+            // Відновлюємо позицію прокрутки
+            setTimeout(() => {
+                const newScheduleWrapper = document.querySelector('.schedule-wrapper');
+                if (newScheduleWrapper) {
+                    newScheduleWrapper.scrollTop = scrollTop;
+                    newScheduleWrapper.scrollLeft = scrollLeft;
+                }
+            }, 0);
         }
 
         function deleteLesson(classId, day, lesson, subjectId = null) {
