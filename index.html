@@ -6,7 +6,7 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 4.0.3</title>
+    <title>Розклад уроків v 4.0.4</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
@@ -3758,17 +3758,17 @@
         function generateClassSchedule(cls) {
             let html = `
                 <div>
-                    <h2 style="color: #667eea; margin-bottom: 10px; font-size: 16px; text-align: center;">
+                    <h2 style="color: #667eea; margin-bottom: 12px; font-size: 18px; text-align: center;">
                         ${cls.name}
                     </h2>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 9px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
                         <thead>
                             <tr style="background: #667eea;">
-                                <th style="border: 1px solid #000; padding: 5px; color: white; font-weight: bold; text-align: center; width: 40px;">Урок</th>
+                                <th style="border: 1px solid #000; padding: 8px; color: white; font-weight: bold; text-align: center; width: 50px;">Урок</th>
             `;
             
             days.forEach(day => {
-                html += `<th style="border: 1px solid #000; padding: 5px; color: white; font-weight: bold; text-align: center;">${day}</th>`;
+                html += `<th style="border: 1px solid #000; padding: 8px; color: white; font-weight: bold; text-align: center;">${day}</th>`;
             });
             
             html += `
@@ -3780,43 +3780,39 @@
             // Генеруємо рядки уроків
             for (let lessonNum = 0; lessonNum < lessons; lessonNum++) {
                 html += `<tr>`;
-                html += `<td style="border: 1px solid #000; padding: 5px; text-align: center; font-weight: bold; background: #f0f0f0;">${lessonNum + 1}</td>`;
+                html += `<td style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; background: #f0f0f0;">${lessonNum + 1}</td>`;
                 
                 days.forEach((day, dayIndex) => {
                     const key = `${dayIndex}-${lessonNum}`;
                     const lesson = schedules[cls.id][key];
                     
                     let cellContent = '';
-                    let bgColor = '#ffffff';
                     
                     if (lesson) {
                         if (Array.isArray(lesson)) {
                             // Підгрупи
                             cellContent = '<div>';
                             lesson.forEach((les, idx) => {
-                                const color = getSubjectColor(les.subjectId);
                                 cellContent += `
-                                    <div style="background: ${color}; padding: 3px; margin-bottom: ${idx < lesson.length - 1 ? '2px' : '0'}; border-radius: 2px;">
-                                        <strong style="font-size: 8px;">${les.name}</strong><br>
-                                        <span style="font-size: 7px;">${les.teacher}</span>
+                                    <div style="padding: 5px; margin-bottom: ${idx < lesson.length - 1 ? '5px' : '0'}; border: 1px solid #ddd; background: #f9f9f9;">
+                                        <strong style="font-size: 11px;">${les.name}</strong><br>
+                                        <span style="font-size: 10px; color: #666;">${les.teacher}</span>
                                     </div>
                                 `;
                             });
                             cellContent += '</div>';
                         } else {
                             // Звичайний урок
-                            const color = getSubjectColor(lesson.subjectId);
-                            bgColor = color;
                             cellContent = `
-                                <strong style="font-size: 8px;">${lesson.name}</strong><br>
-                                <span style="font-size: 7px;">${lesson.teacher}</span>
+                                <strong style="font-size: 11px;">${lesson.name}</strong><br>
+                                <span style="font-size: 10px; color: #666;">${lesson.teacher}</span>
                             `;
                         }
                     } else {
                         cellContent = '&nbsp;';
                     }
                     
-                    html += `<td style="border: 1px solid #000; padding: 5px; background: ${bgColor}; text-align: center; vertical-align: middle; height: 35px;">${cellContent}</td>`;
+                    html += `<td style="border: 1px solid #000; padding: 10px; background: #ffffff; text-align: center; vertical-align: middle; height: 50px;">${cellContent}</td>`;
                 });
                 
                 html += `</tr>`;
