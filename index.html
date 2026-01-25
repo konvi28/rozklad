@@ -6,7 +6,7 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 4.2.2</title>
+    <title>Розклад уроків v 4.2.3</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
@@ -494,6 +494,11 @@
             font-weight: 600;
             background: #f8f9fa;
             color: #667eea;
+        }
+
+        /* Жирна границя між днями тижня (після 8-го уроку) */
+        .schedule-table tr.last-lesson-of-day td {
+            border-bottom: 3px solid #333;
         }
 
         .lesson-slot {
@@ -1569,7 +1574,9 @@
 
             days.forEach((day, dayIndex) => {
                 for (let i = 1; i <= lessons; i++) {
-                    schedulesHtml += `<tr>`;
+                    // Додаємо клас для останнього уроку дня
+                    const isLastLesson = (i === lessons);
+                    schedulesHtml += `<tr${isLastLesson ? ' class="last-lesson-of-day"' : ''}>`;
                     
                     if (i === 1) {
                         schedulesHtml += `<td rowspan="${lessons}" class="day-${dayIndex}" style="font-weight: 600; vertical-align: middle;">${day}</td>`;
