@@ -6,7 +6,7 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 4.3</title>
+    <title>Розклад уроків v 4.4</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
@@ -1142,7 +1142,32 @@
         ];
 
         function getSubjectColor(subjectId) {
+            // Шукаємо предмет за ID
+            const subject = subjects.find(s => s.id === subjectId);
+            
+            // Якщо у предмету є кастомний колір, повертаємо його
+            if (subject && subject.customColor) {
+                return subject.customColor;
+            }
+            
+            // Інакше повертаємо колір з палітри
             return subjectColors[(subjectId - 1) % subjectColors.length];
+        }
+        
+        function changeSubjectColor(subjectId, newColor) {
+            // Знаходимо предмет
+            const subject = subjects.find(s => s.id === subjectId);
+            if (!subject) return;
+            
+            // Зберігаємо кастомний колір
+            subject.customColor = newColor;
+            
+            // Оновлюємо інтерфейс
+            renderSubjects();
+            renderSchedules();
+            
+            // Автозбереження
+            saveToLocalStorage();
         }
 
         function switchTab(tabName) {
@@ -1443,6 +1468,7 @@
                                     <button class="btn-hour-control" onclick="changeSubjectHours(${subject.id}, -1, event);" title="Зменшити кількість годин">−</button>
                                     <button class="btn-hour-control" onclick="changeSubjectHours(${subject.id}, 1, event);" title="Збільшити кількість годин">+</button>
                                 </div>
+                                <input type="color" value="${color}" onchange="changeSubjectColor(${subject.id}, this.value)" title="Обрати колір" style="width: 40px; height: 35px; border: 2px solid #ddd; border-radius: 4px; cursor: pointer;">
                                 <button class="btn btn-primary" onclick="editSubject(${subject.id})">✏️ Редагувати</button>
                                 <button class="btn btn-danger" onclick="removeSubject(${subject.id})">Видалити</button>
                             </div>
