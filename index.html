@@ -6,7 +6,7 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 4.2.6</title>
+    <title>Розклад уроків v 4.3</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
@@ -3858,7 +3858,7 @@
             // Створюємо тимчасовий контейнер для друку
             const printContainer = document.createElement('div');
             printContainer.style.background = 'white';
-            printContainer.style.padding = '2px';
+            printContainer.style.padding = '5px';
             printContainer.style.fontFamily = 'Arial, sans-serif';
             
             // Розбиваємо класи по 2 на сторінку
@@ -3874,7 +3874,7 @@
                 // Другий клас на сторінці (якщо є)
                 if (i + 1 < classes.length) {
                     const cls2 = classes[i + 1];
-                    printContainer.innerHTML += '<div style="margin-top: 4px;"></div>';
+                    printContainer.innerHTML += '<div style="margin-top: 15px;"></div>';
                     printContainer.innerHTML += generateClassSchedule(cls2);
                 }
             }
@@ -3885,7 +3885,7 @@
             setTimeout(() => {
                 // Налаштування PDF
                 const opt = {
-                    margin: [3, 3, 3, 3],
+                    margin: [5, 5, 5, 5],
                     filename: `rozklad_${new Date().toISOString().split('T')[0]}.pdf`,
                     image: { type: 'jpeg', quality: 0.95 },
                     html2canvas: { 
@@ -3897,7 +3897,7 @@
                     jsPDF: { 
                         unit: 'mm', 
                         format: 'a4', 
-                        orientation: 'landscape'
+                        orientation: 'portrait'  // Вертикальна орієнтація
                     }
                 };
                 
@@ -3916,17 +3916,17 @@
         function generateClassSchedule(cls) {
             let html = `
                 <div>
-                    <h2 style="color: #667eea; margin: 0 0 3px 0; font-size: 14px; text-align: center;">
+                    <h2 style="color: #667eea; margin: 0 0 8px 0; font-size: 18px; text-align: center;">
                         ${cls.name}
                     </h2>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 9px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
                         <thead>
                             <tr style="background: #667eea;">
-                                <th style="border: 1px solid #000; padding: 2px; color: white; font-weight: bold; text-align: center; width: 40px;">Урок</th>
+                                <th style="border: 1px solid #000; padding: 5px; color: white; font-weight: bold; text-align: center; width: 50px;">Урок</th>
             `;
             
             days.forEach(day => {
-                html += `<th style="border: 1px solid #000; padding: 2px; color: white; font-weight: bold; text-align: center;">${day}</th>`;
+                html += `<th style="border: 1px solid #000; padding: 5px; color: white; font-weight: bold; text-align: center;">${day}</th>`;
             });
             
             html += `
@@ -3938,7 +3938,7 @@
             // Генеруємо рядки уроків
             for (let lessonNum = 0; lessonNum < lessons; lessonNum++) {
                 html += `<tr>`;
-                html += `<td style="border: 1px solid #000; padding: 2px; text-align: center; font-weight: bold; background: #f0f0f0;">${lessonNum + 1}</td>`;
+                html += `<td style="border: 1px solid #000; padding: 5px; text-align: center; font-weight: bold; background: #f0f0f0;">${lessonNum + 1}</td>`;
                 
                 days.forEach((day, dayIndex) => {
                     const key = `${dayIndex}-${lessonNum}`;
@@ -3948,13 +3948,13 @@
                     
                     if (lesson) {
                         if (Array.isArray(lesson)) {
-                            // Підгрупи - максимально компактно
+                            // Підгрупи
                             cellContent = '<div>';
                             lesson.forEach((les, idx) => {
                                 cellContent += `
-                                    <div style="padding: 0px; margin-bottom: ${idx < lesson.length - 1 ? '1px' : '0'}; border: 1px solid #ddd; background: #f9f9f9; line-height: 1.1;">
-                                        <strong style="font-size: 8px;">${les.name}</strong><br>
-                                        <span style="font-size: 7px; color: #666;">${les.teacher}</span>
+                                    <div style="padding: 2px; margin-bottom: ${idx < lesson.length - 1 ? '3px' : '0'}; border: 1px solid #ddd; background: #f9f9f9; line-height: 1.3;">
+                                        <strong style="font-size: 10px;">${les.name}</strong><br>
+                                        <span style="font-size: 9px; color: #666;">${les.teacher}</span>
                                     </div>
                                 `;
                             });
@@ -3962,9 +3962,9 @@
                         } else {
                             // Звичайний урок
                             cellContent = `
-                                <div style="line-height: 1.2;">
-                                    <strong style="font-size: 9px;">${lesson.name}</strong><br>
-                                    <span style="font-size: 8px; color: #666;">${lesson.teacher}</span>
+                                <div style="line-height: 1.3;">
+                                    <strong style="font-size: 11px;">${lesson.name}</strong><br>
+                                    <span style="font-size: 10px; color: #666;">${lesson.teacher}</span>
                                 </div>
                             `;
                         }
@@ -3972,7 +3972,7 @@
                         cellContent = '&nbsp;';
                     }
                     
-                    html += `<td style="border: 1px solid #000; padding: 2px; background: #ffffff; text-align: center; vertical-align: middle; height: 28px;">${cellContent}</td>`;
+                    html += `<td style="border: 1px solid #000; padding: 5px; background: #ffffff; text-align: center; vertical-align: middle; height: 45px;">${cellContent}</td>`;
                 });
                 
                 html += `</tr>`;
