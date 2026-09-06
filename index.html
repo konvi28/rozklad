@@ -1100,6 +1100,23 @@
                 
                 <div id="teacherScheduleResult" style="margin-top: 20px;"></div>
             </div>
+
+            <!-- Звіт 2.5: Розклад класу -->
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                <h3 style="margin-bottom: 15px; color: #333;">🏫 Розклад класу</h3>
+                <p style="color: #6c757d; margin-bottom: 15px;">Оберіть клас, щоб побачити його повний розклад на тиждень</p>
+                
+                <div class="form-group" style="max-width: 400px;">
+                    <label for="reportClass">Клас:</label>
+                    <select id="reportClass" style="width: 100%; padding: 10px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 16px;">
+                        <option value="">-- Оберіть клас --</option>
+                    </select>
+                </div>
+                
+                <button class="btn btn-primary" onclick="showClassSchedule()">📅 Показати розклад</button>
+                
+                <div id="classScheduleResult" style="margin-top: 20px;"></div>
+            </div>
             
             <!-- Звіт 3: Навантаження вчителів -->
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
@@ -1432,7 +1449,8 @@
 
         function renderClasses() {
             const list = document.getElementById('classList');
-            
+            updateClassesReportList();
+
             if (classes.length === 0) {
                 list.innerHTML = '<p style="text-align: center; color: #6c757d; margin-top: 20px;">Немає доданих класів</p>';
                 return;
@@ -3505,6 +3523,99 @@
                 </div>
             `;
             
+            resultDiv.innerHTML = html;
+        }
+
+        function updateClassesReportList() {
+            const classSelect = document.getElementById('reportClass');
+            if (!classSelect) return;
+
+            const previousValue = classSelect.value;
+
+            let html = '<option value="">-- Оберіть клас --</option>';
+            classes.forEach(cls => {
+                html += `<option value="${cls.id}">${cls.name}</option>`;
+            });
+
+            classSelect.innerHTML = html;
+
+            // Зберігаємо попередній вибір, якщо клас ще існує
+            if (previousValue && classes.some(cls => String(cls.id) === previousValue)) {
+                classSelect.value = previousValue;
+            }
+        }
+
+        function showClassSchedule() {
+            const classId = Number(document.getElementById('reportClass').value);
+            const resultDiv = document.getElementById('classScheduleResult');
+
+            if (!classId) {
+                resultDiv.innerHTML = '<p style="color: #dc3545;">⚠️ Будь ласка, оберіть клас</p>';
+                return;
+            }
+
+            const cls = classes.find(c => c.id === classId);
+            if (!cls) {
+                resultDiv.innerHTML = '<p style="color: #dc3545;">⚠️ Клас не знайдено</p>';
+                return;
+            }
+
+            const classSchedule = schedules[classId] || {};
+
+            // Генеруємо таблицю
+            let html = `
+                <div class="report-result">
+                    <h4>🏫 Розклад класу: ${cls.name}</h4>
+                    <table class="teacher-schedule-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;">Урок</th>
+            `;
+
+            days.forEach(day => {
+                html += `<th>${day}</th>`;
+            });
+
+            html += `
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            for (let lessonIndex = 0; lessonIndex < lessons; lessonIndex++) {
+                html += `<tr><td><strong>${lessonIndex + 1}</strong></td>`;
+
+                days.forEach((day, dayIndex) => {
+                    const key = `${dayIndex}-${lessonIndex}`;
+                    const lesson = classSchedule[key];
+
+                    if (lesson) {
+                        const lessonList = Array.isArray(lesson) ? lesson : [lesson];
+                        html += `<td class="has-lesson">`;
+                        lessonList.forEach((les, idx) => {
+                            const color = getSubjectColor(les.subjectId);
+                            html += `
+                                <div style="background: ${color}; color: white; border-radius: 6px; padding: 6px 8px; margin-bottom: ${idx < lessonList.length - 1 ? '5px' : '0'};">
+                                    <div style="font-weight: 600;">${les.name}</div>
+                                    <div style="font-size: 12px; opacity: 0.9;">${les.teacher}</div>
+                                </div>
+                            `;
+                        });
+                        html += `</td>`;
+                    } else {
+                        html += `<td class="no-lesson">вікно</td>`;
+                    }
+                });
+
+                html += `</tr>`;
+            }
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
             resultDiv.innerHTML = html;
         }
 
