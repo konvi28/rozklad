@@ -678,6 +678,58 @@
             font-size: 14px;
         }
 
+        /* Компактний вигляд основної таблиці розкладу */
+        .schedule-table.compact-view th {
+            padding: 4px 3px;
+            font-size: 10px;
+        }
+
+        .schedule-table.compact-view td {
+            padding: 2px;
+            min-height: 26px;
+        }
+
+        .schedule-table.compact-view td:first-child,
+        .schedule-table.compact-view td.lesson-number {
+            padding: 4px 2px;
+            font-size: 10px;
+        }
+
+        .schedule-table.compact-view .lesson-slot {
+            min-height: 26px;
+            font-size: 9px;
+        }
+
+        .schedule-table.compact-view .lesson-card,
+        .schedule-table.compact-view .lesson-card-split {
+            padding: 2px 3px;
+            border-radius: 4px;
+        }
+
+        .schedule-table.compact-view .lesson-card-subject,
+        .schedule-table.compact-view .lesson-card-split .lesson-card-subject {
+            font-size: 10px;
+            margin-bottom: 1px;
+            padding: 1px 2px;
+        }
+
+        .schedule-table.compact-view .lesson-card-teacher,
+        .schedule-table.compact-view .lesson-card-split .lesson-card-teacher {
+            font-size: 9px;
+            padding: 1px 2px;
+        }
+
+        .schedule-table.compact-view .delete-lesson-btn,
+        .schedule-table.compact-view .lesson-card-split .delete-lesson-btn {
+            width: 14px;
+            height: 14px;
+            font-size: 11px;
+        }
+
+        .schedule-table.compact-view .multiple-lessons {
+            gap: 1px;
+        }
+
         .available-tiles-section {
             margin-bottom: 10px;
             padding: 10px;
@@ -1054,6 +1106,10 @@
                 <button class="btn btn-info" onclick="checkTeacherConflicts()">🔍 Перевірка на збіг</button>
                 <button class="btn btn-info" id="magnifierButton" onclick="toggleMagnifier()">🔎 Лупа</button>
                 <button class="btn btn-info" id="fullViewButton" onclick="toggleFullScheduleView()">🖥️ Весь розклад на екрані</button>
+                <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; color: #333;">
+                    <input type="checkbox" id="scheduleCompactView" onchange="toggleScheduleCompactView()">
+                    📐 Компактний вигляд
+                </label>
                 <input type="file" id="excelInput" accept=".xlsx,.xls" onchange="importFromExcel(event)">
             </div>
             <div id="scheduleContent"></div>
@@ -1806,10 +1862,33 @@
             // Додаємо обробники
             attachScheduleDragHandlers();
 
+            // Застосовуємо компактний вигляд, якщо він активний (рендер щоразу створює нову таблицю)
+            applyScheduleCompactView();
+
             // Якщо активний режим "весь розклад на екрані" - перерахувати масштаб
             if (fullScheduleView) {
                 applyFullScheduleView();
             }
+        }
+
+        // ===== Компактний вигляд основної таблиці розкладу =====
+        let scheduleCompactView = false;
+
+        function toggleScheduleCompactView() {
+            scheduleCompactView = document.getElementById('scheduleCompactView').checked;
+            applyScheduleCompactView();
+
+            // Якщо активний режим "весь розклад на екрані" - перерахувати масштаб,
+            // бо компактний вигляд змінює природний розмір таблиці
+            if (fullScheduleView) {
+                applyFullScheduleView();
+            }
+        }
+
+        function applyScheduleCompactView() {
+            const table = document.querySelector('.schedule-table');
+            if (!table) return;
+            table.classList.toggle('compact-view', scheduleCompactView);
         }
 
         // ===== Режим "Весь розклад на екрані" =====
