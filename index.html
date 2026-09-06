@@ -243,6 +243,10 @@
 
         #scheduleContent {
             padding-top: 10px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
         }
 
         .save-load-section h3 {
@@ -403,9 +407,16 @@
 
         .schedule-wrapper.fit-view {
             overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
         }
 
-        .schedule-table.fit-view {
+        .schedule-wrapper.fit-view .schedule-scale-box {
+            overflow: hidden;
+        }
+
+        .schedule-scale-inner {
             transform-origin: top left;
         }
 
@@ -1650,6 +1661,8 @@
                 <div class="class-schedule-section">
                     <div class="class-schedule-title">Розклад уроків</div>
                     <div class="schedule-wrapper">
+                        <div class="schedule-scale-box">
+                        <div class="schedule-scale-inner">
                         <table class="schedule-table">
                             <thead>
                                 <tr>
@@ -1739,6 +1752,8 @@
             schedulesHtml += `
                             </tbody>
                         </table>
+                        </div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -1774,19 +1789,23 @@
 
         function applyFullScheduleView() {
             const wrapper = document.querySelector('.schedule-wrapper');
+            const scaleBox = document.querySelector('.schedule-scale-box');
+            const inner = document.querySelector('.schedule-scale-inner');
             const table = document.querySelector('.schedule-table');
-            if (!wrapper || !table) return;
+            if (!wrapper || !scaleBox || !inner || !table) return;
 
             if (!fullScheduleView) {
                 wrapper.classList.remove('fit-view');
-                table.classList.remove('fit-view');
-                table.style.transform = 'none';
-                wrapper.style.height = '';
+                scaleBox.style.width = '';
+                scaleBox.style.height = '';
+                inner.style.transform = 'none';
                 return;
             }
 
-            // Спочатку скидаємо масштаб, щоб коректно виміряти природний розмір таблиці
-            table.style.transform = 'none';
+            // Спочатку скидаємо масштаб/розміри, щоб коректно виміряти природний розмір таблиці
+            inner.style.transform = 'none';
+            scaleBox.style.width = 'max-content';
+            scaleBox.style.height = 'max-content';
             wrapper.classList.add('fit-view');
 
             requestAnimationFrame(() => {
@@ -1799,10 +1818,12 @@
 
                 const scale = Math.min(wrapperWidth / tableWidth, wrapperHeight / tableHeight, 1);
 
-                table.classList.add('fit-view');
-                table.style.transform = `scale(${scale})`;
-                // Компенсуємо порожнє місце, що залишається під масштабованою таблицею
-                wrapper.style.height = (tableHeight * scale) + 'px';
+                // Масштабуємо внутрішній шар (не сам table - щоб уникнути глітчів з sticky-заголовками)
+                inner.style.transform = `scale(${scale})`;
+                // Обгортці задаємо точний "візуальний" (вже зменшений) розмір,
+                // щоб .schedule-wrapper міг коректно відцентрувати її по flex
+                scaleBox.style.width = (tableWidth * scale) + 'px';
+                scaleBox.style.height = (tableHeight * scale) + 'px';
             });
         }
 
