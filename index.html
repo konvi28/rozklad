@@ -6,7 +6,7 @@
     <link rel="icon" type="image/webp" href="logo.webp">
     <link rel="shortcut icon" type="image/webp" href="logo.webp">
     <link rel="apple-touch-icon" href="logo.webp">
-    <title>Розклад уроків v 4.5.1</title>
+    <title>Розклад уроків v 4.6.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
@@ -424,6 +424,11 @@
             background: #218838;
             box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5);
         }
+
+        #transposeViewButton.active-toggle {
+            background: #218838;
+            box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5);
+        }
         
         .schedule-wrapper::-webkit-scrollbar {
             width: 12px;
@@ -728,6 +733,101 @@
 
         .schedule-table.compact-view .multiple-lessons {
             gap: 1px;
+        }
+
+        /* Транспонований вигляд таблиці (класи рядками, дні стовпцями) */
+        .schedule-table.transposed-view th:first-child {
+            writing-mode: horizontal-tb;
+            text-orientation: initial;
+            padding: 8px 10px;
+            width: auto;
+            min-width: auto;
+            max-width: none;
+        }
+
+        .schedule-table.transposed-view td:first-child {
+            writing-mode: horizontal-tb;
+            text-orientation: initial;
+            padding: 8px 10px;
+            width: auto;
+            min-width: auto;
+            max-width: none;
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .schedule-table.transposed-view td.lesson-number {
+            position: static;
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .schedule-table.transposed-view th {
+            font-size: 11px;
+            padding: 6px 4px;
+        }
+
+        .schedule-table.transposed-view .lesson-slot {
+            min-height: 50px;
+        }
+
+        .schedule-table.transposed-view .lesson-card {
+            padding: 4px 6px;
+        }
+
+        .schedule-table.transposed-view .lesson-card-subject {
+            font-size: 12px;
+        }
+
+        .schedule-table.transposed-view .lesson-card-teacher {
+            font-size: 11px;
+        }
+
+        .schedule-table.transposed-view .delete-lesson-btn {
+            width: 16px;
+            height: 16px;
+            font-size: 12px;
+        }
+
+        .schedule-table.transposed-view.compact-view th {
+            font-size: 9px;
+            padding: 3px 2px;
+        }
+
+        .schedule-table.transposed-view.compact-view td {
+            padding: 2px;
+            min-height: 22px;
+        }
+
+        .schedule-table.transposed-view.compact-view .lesson-slot {
+            min-height: 22px;
+            font-size: 8px;
+        }
+
+        .schedule-table.transposed-view.compact-view .lesson-card-subject {
+            font-size: 8px;
+        }
+
+        .schedule-table.transposed-view.compact-view .lesson-card-teacher {
+            font-size: 7px;
+        }
+
+        /* Стилі для заголовків класів у транспонованому вигляді */
+        .schedule-table .class-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            padding: 6px 8px;
+            border: 1px solid #000;
+        }
+
+        .schedule-table .class-header .class-name {
+            font-size: 13px;
+        }
+
+        .schedule-table .class-header .class-lesson-count {
+            font-size: 10px;
+            opacity: 0.8;
         }
 
         .available-tiles-section {
@@ -1106,6 +1206,7 @@
                 <button class="btn btn-info" onclick="checkTeacherConflicts()">🔍 Перевірка на збіг</button>
                 <button class="btn btn-info" id="magnifierButton" onclick="toggleMagnifier()">🔎 Лупа</button>
                 <button class="btn btn-info" id="fullViewButton" onclick="toggleFullScheduleView()">🖥️ Весь розклад на екрані</button>
+                <button class="btn btn-info" id="transposeViewButton" onclick="toggleTransposeView()">🔄 Транспонувати</button>
                 <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px; color: #333;">
                     <input type="checkbox" id="scheduleCompactView" onchange="toggleScheduleCompactView()">
                     📐 Компактний вигляд
@@ -1281,31 +1382,19 @@
         ];
 
         function getSubjectColor(subjectId) {
-            // Шукаємо предмет за ID
             const subject = subjects.find(s => s.id === subjectId);
-            
-            // Якщо у предмету є кастомний колір, повертаємо його
             if (subject && subject.customColor) {
                 return subject.customColor;
             }
-            
-            // Інакше повертаємо колір з палітри
             return subjectColors[(subjectId - 1) % subjectColors.length];
         }
         
         function changeSubjectColor(subjectId, newColor) {
-            // Знаходимо предмет
             const subject = subjects.find(s => s.id === subjectId);
             if (!subject) return;
-            
-            // Зберігаємо кастомний колір
             subject.customColor = newColor;
-            
-            // Оновлюємо інтерфейс
             renderSubjects();
             renderSchedules();
-            
-            // Автозбереження
             saveToLocalStorage();
         }
 
@@ -1340,8 +1429,6 @@
             document.getElementById('className').value = '';
             renderClasses();
             renderSchedules();
-            
-            // Автозбереження
             saveToLocalStorage();
         }
 
@@ -1351,8 +1438,6 @@
                 delete schedules[id];
                 renderClasses();
                 renderSchedules();
-                
-                // Автозбереження
                 saveToLocalStorage();
             }
         }
@@ -1361,9 +1446,8 @@
             const classItem = classes.find(c => c.id === id);
             if (!classItem) return;
             
-            // Запитуємо нову назву класу
             const newName = prompt('Введіть нову назву класу:', classItem.name);
-            if (newName === null) return; // Користувач натиснув "Скасувати"
+            if (newName === null) return;
             
             const trimmedName = newName.trim();
             if (!trimmedName) {
@@ -1371,17 +1455,11 @@
                 return;
             }
             
-            // Зберігаємо стару назву
             const oldName = classItem.name;
-            
-            // Оновлюємо назву класу
             classItem.name = trimmedName;
             
-            // Оновлюємо інтерфейс
             renderClasses();
             renderSchedules();
-            
-            // Автозбереження
             saveToLocalStorage();
             
             alert(`✅ Клас перейменовано!\n\n"${oldName}" → "${trimmedName}"`);
@@ -1412,11 +1490,7 @@
             
             renderSubjects();
             renderSchedules();
-            
-            // Автозбереження
             saveToLocalStorage();
-            
-            // Оновлюємо список вчителів в звітах
             updateTeachersList();
         }
 
@@ -1424,27 +1498,18 @@
             if (confirm('Ви впевнені, що хочете видалити цей предмет?')) {
                 subjects = subjects.filter(s => s.id !== id);
                 
-                // Видаляємо всі уроки цього предмету з розкладу
                 Object.keys(schedules).forEach(classId => {
                     Object.keys(schedules[classId]).forEach(key => {
                         const slot = schedules[classId][key];
                         
-                        // Якщо це масив (підгрупи)
                         if (Array.isArray(slot)) {
-                            // Фільтруємо масив, видаляючи урок з цим subjectId
                             schedules[classId][key] = slot.filter(lesson => lesson.subjectId !== id);
-                            
-                            // Якщо масив порожній, видаляємо весь слот
                             if (schedules[classId][key].length === 0) {
                                 delete schedules[classId][key];
-                            }
-                            // Якщо залишився тільки один урок, перетворюємо масив в об'єкт
-                            else if (schedules[classId][key].length === 1) {
+                            } else if (schedules[classId][key].length === 1) {
                                 schedules[classId][key] = schedules[classId][key][0];
                             }
-                        } 
-                        // Якщо це один урок
-                        else if (slot && slot.subjectId === id) {
+                        } else if (slot && slot.subjectId === id) {
                             delete schedules[classId][key];
                         }
                     });
@@ -1452,11 +1517,7 @@
                 
                 renderSubjects();
                 renderSchedules();
-                
-                // Автозбереження
                 saveToLocalStorage();
-                
-                // Оновлюємо список вчителів в звітах
                 updateTeachersList();
             }
         }
@@ -1465,9 +1526,8 @@
             const subject = subjects.find(s => s.id === id);
             if (!subject) return;
             
-            // Запитуємо нову назву предмету
             const newName = prompt('Введіть нову назву предмету:', subject.name);
-            if (newName === null) return; // Користувач натиснув "Скасувати"
+            if (newName === null) return;
             
             const trimmedName = newName.trim();
             if (!trimmedName) {
@@ -1475,9 +1535,8 @@
                 return;
             }
             
-            // Запитуємо нове ім'я вчителя
             const newTeacher = prompt('Введіть ім\'я вчителя:', subject.teacher);
-            if (newTeacher === null) return; // Користувач натиснув "Скасувати"
+            if (newTeacher === null) return;
             
             const trimmedTeacher = newTeacher.trim();
             if (!trimmedTeacher) {
@@ -1485,21 +1544,17 @@
                 return;
             }
             
-            // Зберігаємо старі значення для оновлення розкладу
             const oldName = subject.name;
             const oldTeacher = subject.teacher;
             
-            // Оновлюємо предмет
             subject.name = trimmedName;
             subject.teacher = trimmedTeacher;
             
-            // Оновлюємо всі уроки в розкладі
             Object.keys(schedules).forEach(classId => {
                 Object.keys(schedules[classId]).forEach(key => {
                     const lesson = schedules[classId][key];
                     
                     if (Array.isArray(lesson)) {
-                        // Обробляємо підгрупи
                         lesson.forEach(les => {
                             if (les.subjectId === id) {
                                 les.name = trimmedName;
@@ -1507,21 +1562,15 @@
                             }
                         });
                     } else if (lesson && lesson.subjectId === id) {
-                        // Звичайний урок
                         lesson.name = trimmedName;
                         lesson.teacher = trimmedTeacher;
                     }
                 });
             });
             
-            // Оновлюємо інтерфейс
             renderSubjects();
             renderSchedules();
-            
-            // Автозбереження
             saveToLocalStorage();
-            
-            // Оновлюємо список вчителів в звітах
             updateTeachersList();
             
             alert(`✅ Предмет оновлено!\n\n"${oldName}" (${oldTeacher})\n↓\n"${trimmedName}" (${trimmedTeacher})`);
@@ -1549,17 +1598,11 @@
 
         function sortSubjects(sortBy) {
             if (sortBy === 'name') {
-                // Сортування за назвою (А-Я)
                 subjects.sort((a, b) => a.name.localeCompare(b.name, 'uk'));
             } else if (sortBy === 'teacher') {
-                // Сортування за вчителем (А-Я)
                 subjects.sort((a, b) => a.teacher.localeCompare(b.teacher, 'uk'));
             }
-            
-            // Перерендерюємо список
             renderSubjects();
-            
-            // Автозбереження
             saveToLocalStorage();
         }
 
@@ -1575,14 +1618,10 @@
                 return;
             }
 
-            // Показуємо та оновлюємо статистику
             statsDiv.style.display = 'block';
             sortButtonsDiv.style.display = 'block';
             
-            // Підраховуємо унікальних вчителів
             const uniqueTeachers = new Set(subjects.map(s => s.teacher)).size;
-            
-            // Підраховуємо сумарну кількість годин
             const totalHours = subjects.reduce((sum, s) => sum + s.hours, 0);
             
             document.getElementById('totalSubjects').textContent = subjects.length;
@@ -1644,8 +1683,32 @@
                 `;
             }).join('');
 
-            // Додаємо обробники після рендерингу
             attachTileDragHandlers();
+        }
+
+        // ===== Транспонований вигляд =====
+        let transposeView = false;
+
+        function toggleTransposeView() {
+            transposeView = !transposeView;
+
+            const btn = document.getElementById('transposeViewButton');
+            if (btn) {
+                btn.classList.toggle('active-toggle', transposeView);
+                btn.textContent = transposeView
+                    ? '🔄 Стандартний вигляд'
+                    : '🔄 Транспонувати';
+            }
+
+            renderSchedules();
+
+            // Застосовуємо компактний вигляд після рендерингу
+            setTimeout(() => {
+                applyScheduleCompactView();
+                if (fullScheduleView) {
+                    applyFullScheduleView();
+                }
+            }, 50);
         }
 
         function renderSchedules() {
@@ -1677,7 +1740,6 @@
             let tilesHtml = '';
             let hasAvailableLessons = false;
             
-            // Спочатку перевіряємо чи є взагалі доступні уроки
             subjects.forEach(subject => {
                 let usedCount = 0;
                 classes.forEach(cls => {
@@ -1691,13 +1753,11 @@
                     });
                 });
                 
-                const availableCount = subject.hours - usedCount;
-                if (availableCount > 0) {
+                if (subject.hours - usedCount > 0) {
                     hasAvailableLessons = true;
                 }
             });
             
-            // Показуємо блок тільки якщо є доступні уроки
             if (hasAvailableLessons) {
                 tilesHtml = '<div class="available-tiles-section"><h2>Доступні уроки для розміщення</h2>';
                 
@@ -1717,7 +1777,6 @@
                     const availableCount = subject.hours - usedCount;
                     const color = getSubjectColor(subject.id);
                     
-                    // Показуємо тільки предмети з доступними уроками
                     if (availableCount > 0) {
                         tilesHtml += `
                             <div class="subject-item" style="margin-bottom: 15px;">
@@ -1754,102 +1813,23 @@
 
             // Генеруємо розклад
             let schedulesHtml = '<div class="schedules-container">';
-            
             schedulesHtml += `
                 <div class="class-schedule-section">
                     <div class="class-schedule-title">Розклад уроків</div>
                     <div class="schedule-wrapper">
                         <div class="schedule-scale-box">
                         <div class="schedule-scale-inner">
-                        <table class="schedule-table">
-                            <thead>
-                                <tr>
-                                    <th>День</th>
-                                    <th>Урок</th>
-                                    ${classes.map(cls => `<th>${cls.name}</th>`).join('')}
-                                </tr>
-                            </thead>
-                            <tbody>
             `;
 
-            days.forEach((day, dayIndex) => {
-                for (let i = 1; i <= lessons; i++) {
-                    // Додаємо клас для останнього уроку дня
-                    const isLastLesson = (i === lessons);
-                    schedulesHtml += `<tr${isLastLesson ? ' class="last-lesson-of-day"' : ''}>`;
-                    
-                    if (i === 1) {
-                        schedulesHtml += `<td rowspan="${lessons}" class="day-${dayIndex}" style="font-weight: 600; vertical-align: middle;">${day}</td>`;
-                    }
-                    
-                    schedulesHtml += `<td class="lesson-number">${i}</td>`;
-                    
-                    classes.forEach(cls => {
-                        const key = `${dayIndex}-${i-1}`;
-                        const lesson = schedules[cls.id][key];
-                        
-                        schedulesHtml += `<td>`;
-                        
-                        if (lesson) {
-                            // Перевіряємо чи це масив уроків (підгрупи)
-                            if (Array.isArray(lesson)) {
-                                schedulesHtml += `<div class="multiple-lessons">`;
-                                lesson.forEach((les, idx) => {
-                                    const color = getSubjectColor(les.subjectId);
-                                    schedulesHtml += `
-                                        <div class="lesson-card lesson-card-split" draggable="true" 
-                                             data-subject-id="${les.subjectId}"
-                                             data-from-schedule="true"
-                                             data-class-id="${cls.id}"
-                                             data-day="${dayIndex}"
-                                             data-lesson="${i-1}"
-                                             ondblclick="editLessonInSchedule(${cls.id}, ${dayIndex}, ${i-1}, ${les.subjectId})"
-                                             style="background: ${color}; position: relative; margin-bottom: ${idx < lesson.length - 1 ? '4px' : '0'}; cursor: pointer;">
-                                            <button class="delete-lesson-btn" onclick="deleteLesson(${cls.id}, ${dayIndex}, ${i-1}, ${les.subjectId}); event.stopPropagation();" title="Видалити урок">×</button>
-                                            <div class="lesson-card-subject">${les.name}</div>
-                                            <div class="lesson-card-teacher">${les.teacher}</div>
-                                        </div>
-                                    `;
-                                });
-                                schedulesHtml += `</div>`;
-                            } else {
-                                // Один урок
-                                const color = getSubjectColor(lesson.subjectId);
-                                schedulesHtml += `
-                                    <div class="lesson-card" draggable="true" 
-                                         data-subject-id="${lesson.subjectId}"
-                                         data-from-schedule="true"
-                                         data-class-id="${cls.id}"
-                                         data-day="${dayIndex}"
-                                         data-lesson="${i-1}"
-                                         ondblclick="editLessonInSchedule(${cls.id}, ${dayIndex}, ${i-1})"
-                                         style="background: ${color}; position: relative; cursor: pointer;">
-                                        <button class="delete-lesson-btn" onclick="deleteLesson(${cls.id}, ${dayIndex}, ${i-1}); event.stopPropagation();" title="Видалити урок">×</button>
-                                        <div class="lesson-card-subject">${lesson.name}</div>
-                                        <div class="lesson-card-teacher">${lesson.teacher}</div>
-                                    </div>
-                                `;
-                            }
-                        } else {
-                            schedulesHtml += `
-                                <div class="lesson-slot" 
-                                     data-class-id="${cls.id}"
-                                     data-day="${dayIndex}" 
-                                     data-lesson="${i-1}">
-                                </div>
-                            `;
-                        }
-                        
-                        schedulesHtml += `</td>`;
-                    });
-                    
-                    schedulesHtml += '</tr>';
-                }
-            });
+            if (transposeView) {
+                // ТРАНСПОНОВАНИЙ ВИГЛЯД: дні стовпцями, класи рядками
+                schedulesHtml += generateTransposedSchedule();
+            } else {
+                // СТАНДАРТНИЙ ВИГЛЯД: дні рядками, класи стовпцями
+                schedulesHtml += generateStandardSchedule();
+            }
 
             schedulesHtml += `
-                            </tbody>
-                        </table>
                         </div>
                         </div>
                     </div>
@@ -1859,27 +1839,167 @@
             schedulesHtml += '</div>';
             content.innerHTML = tilesHtml + schedulesHtml;
             
-            // Додаємо обробники
             attachScheduleDragHandlers();
-
-            // Застосовуємо компактний вигляд, якщо він активний (рендер щоразу створює нову таблицю)
             applyScheduleCompactView();
 
-            // Якщо активний режим "весь розклад на екрані" - перерахувати масштаб
             if (fullScheduleView) {
                 applyFullScheduleView();
             }
         }
 
-        // ===== Компактний вигляд основної таблиці розкладу =====
+        function generateStandardSchedule() {
+            let html = `
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>День</th>
+                            <th>Урок</th>
+                            ${classes.map(cls => `<th>${cls.name}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            days.forEach((day, dayIndex) => {
+                for (let i = 1; i <= lessons; i++) {
+                    const isLastLesson = (i === lessons);
+                    html += `<tr${isLastLesson ? ' class="last-lesson-of-day"' : ''}>`;
+                    
+                    if (i === 1) {
+                        html += `<td rowspan="${lessons}" class="day-${dayIndex}" style="font-weight: 600; vertical-align: middle;">${day}</td>`;
+                    }
+                    
+                    html += `<td class="lesson-number">${i}</td>`;
+                    
+                    classes.forEach(cls => {
+                        const key = `${dayIndex}-${i-1}`;
+                        const lesson = schedules[cls.id][key];
+                        
+                        html += `<td>`;
+                        html += renderLessonCell(cls.id, dayIndex, i-1, lesson);
+                        html += `</td>`;
+                    });
+                    
+                    html += '</tr>';
+                }
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+            
+            return html;
+        }
+
+        function generateTransposedSchedule() {
+            // Транспонований вигляд: рядки - класи + уроки, стовпці - дні
+            let html = `
+                <table class="schedule-table transposed-view">
+                    <thead>
+                        <tr>
+                            <th>Клас / Урок</th>
+                            ${days.map(day => `<th>${day}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            // Для кожного класу
+            classes.forEach(cls => {
+                // Рядок з назвою класу (об'єднаний по всіх днях)
+                html += `<tr>
+                    <td colspan="${days.length + 1}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: 600; padding: 6px 10px; text-align: left; border: 1px solid #000;">
+                        📚 ${cls.name}
+                    </td>
+                </tr>`;
+
+                // Рядки для кожного уроку
+                for (let lessonNum = 1; lessonNum <= lessons; lessonNum++) {
+                    html += `<tr>`;
+                    
+                    // Перша колонка - номер уроку
+                    html += `<td class="lesson-number" style="background: #f8f9fa; font-weight: 600;">${lessonNum}</td>`;
+                    
+                    // Колонки для кожного дня
+                    days.forEach((day, dayIndex) => {
+                        const key = `${dayIndex}-${lessonNum-1}`;
+                        const lesson = schedules[cls.id][key];
+                        
+                        html += `<td>`;
+                        html += renderLessonCell(cls.id, dayIndex, lessonNum-1, lesson);
+                        html += `</td>`;
+                    });
+                    
+                    html += '</tr>';
+                }
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+            
+            return html;
+        }
+
+        function renderLessonCell(classId, dayIndex, lessonIndex, lesson) {
+            if (lesson) {
+                if (Array.isArray(lesson)) {
+                    let result = '<div class="multiple-lessons">';
+                    lesson.forEach((les, idx) => {
+                        const color = getSubjectColor(les.subjectId);
+                        result += `
+                            <div class="lesson-card lesson-card-split" draggable="true" 
+                                 data-subject-id="${les.subjectId}"
+                                 data-from-schedule="true"
+                                 data-class-id="${classId}"
+                                 data-day="${dayIndex}"
+                                 data-lesson="${lessonIndex}"
+                                 ondblclick="editLessonInSchedule(${classId}, ${dayIndex}, ${lessonIndex}, ${les.subjectId})"
+                                 style="background: ${color}; position: relative; margin-bottom: ${idx < lesson.length - 1 ? '4px' : '0'}; cursor: pointer;">
+                                <button class="delete-lesson-btn" onclick="deleteLesson(${classId}, ${dayIndex}, ${lessonIndex}, ${les.subjectId}); event.stopPropagation();" title="Видалити урок">×</button>
+                                <div class="lesson-card-subject">${les.name}</div>
+                                <div class="lesson-card-teacher">${les.teacher}</div>
+                            </div>
+                        `;
+                    });
+                    result += '</div>';
+                    return result;
+                } else {
+                    const color = getSubjectColor(lesson.subjectId);
+                    return `
+                        <div class="lesson-card" draggable="true" 
+                             data-subject-id="${lesson.subjectId}"
+                             data-from-schedule="true"
+                             data-class-id="${classId}"
+                             data-day="${dayIndex}"
+                             data-lesson="${lessonIndex}"
+                             ondblclick="editLessonInSchedule(${classId}, ${dayIndex}, ${lessonIndex})"
+                             style="background: ${color}; position: relative; cursor: pointer;">
+                            <button class="delete-lesson-btn" onclick="deleteLesson(${classId}, ${dayIndex}, ${lessonIndex}); event.stopPropagation();" title="Видалити урок">×</button>
+                            <div class="lesson-card-subject">${lesson.name}</div>
+                            <div class="lesson-card-teacher">${lesson.teacher}</div>
+                        </div>
+                    `;
+                }
+            } else {
+                return `
+                    <div class="lesson-slot" 
+                         data-class-id="${classId}"
+                         data-day="${dayIndex}" 
+                         data-lesson="${lessonIndex}">
+                    </div>
+                `;
+            }
+        }
+
+        // ===== Компактний вигляд =====
         let scheduleCompactView = false;
 
         function toggleScheduleCompactView() {
             scheduleCompactView = document.getElementById('scheduleCompactView').checked;
             applyScheduleCompactView();
-
-            // Якщо активний режим "весь розклад на екрані" - перерахувати масштаб,
-            // бо компактний вигляд змінює природний розмір таблиці
             if (fullScheduleView) {
                 applyFullScheduleView();
             }
@@ -1923,7 +2043,6 @@
                 return;
             }
 
-            // Спочатку скидаємо масштаб/розміри, щоб коректно виміряти природний розмір таблиці
             inner.style.transform = 'none';
             scaleBox.style.width = 'max-content';
             scaleBox.style.height = 'max-content';
@@ -1939,22 +2058,19 @@
 
                 const scale = Math.min(wrapperWidth / tableWidth, wrapperHeight / tableHeight, 1);
 
-                // Масштабуємо внутрішній шар (не сам table - щоб уникнути глітчів з sticky-заголовками)
                 inner.style.transform = `scale(${scale})`;
-                // Обгортці задаємо точний "візуальний" (вже зменшений) розмір,
-                // щоб .schedule-wrapper міг коректно відцентрувати її по flex
                 scaleBox.style.width = (tableWidth * scale) + 'px';
                 scaleBox.style.height = (tableHeight * scale) + 'px';
             });
         }
 
-        // Перераховуємо масштаб при зміні розміру вікна
         window.addEventListener('resize', () => {
             if (fullScheduleView) {
                 applyFullScheduleView();
             }
         });
 
+        // ===== Drag and Drop =====
         let draggedElement = null;
         let draggedSubjectId = null;
         let fromSchedule = false;
@@ -1972,7 +2088,6 @@
                 tile.addEventListener('dragend', handleDragEnd);
             });
 
-            // Додаємо обробники для контейнерів плиток
             const containers = document.querySelectorAll('.tiles-container');
             containers.forEach(container => {
                 container.addEventListener('dragover', handleContainerDragOver);
@@ -2001,10 +2116,8 @@
                 slot.addEventListener('drop', handleSlotDrop);
             });
 
-            // Додаємо обробники до всіх td в таблиці розкладу (крім перших двох колонок)
             const scheduleTds = document.querySelectorAll('.schedule-table tbody td:not(.lesson-number):not(:first-child)');
             scheduleTds.forEach(td => {
-                // Пропускаємо td з lesson-slot (вони вже оброблені)
                 if (td.querySelector('.lesson-slot')) return;
                 
                 td.addEventListener('dragover', handleTdDragOver);
@@ -2012,7 +2125,6 @@
                 td.addEventListener('drop', handleTdDrop);
             });
 
-            // Додаємо обробники для контейнерів плиток
             const containers = document.querySelectorAll('.tiles-container');
             containers.forEach(container => {
                 container.addEventListener('dragover', handleContainerDragOver);
@@ -2022,7 +2134,6 @@
         }
 
         function handleTileDragStart(e) {
-            // Зберігаємо позиції прокрутки при початку перетягування
             const scheduleContent = document.getElementById('scheduleContent');
             const scheduleWrapper = document.querySelector('.schedule-wrapper');
             const availableTiles = document.querySelector('.available-tiles-section');
@@ -2044,7 +2155,6 @@
         }
 
         function handleCardDragStart(e) {
-            // Зберігаємо позиції прокрутки при початку перетягування
             const scheduleContent = document.getElementById('scheduleContent');
             const scheduleWrapper = document.querySelector('.schedule-wrapper');
             const availableTiles = document.querySelector('.available-tiles-section');
@@ -2080,7 +2190,6 @@
             e.currentTarget.classList.add('drag-over');
             e.dataTransfer.dropEffect = 'move';
             
-            // Відновлюємо позиції прокрутки під час перетягування
             const scheduleContent = document.getElementById('scheduleContent');
             const availableTiles = document.querySelector('.available-tiles-section');
             
@@ -2105,7 +2214,6 @@
             }
             e.dataTransfer.dropEffect = 'move';
             
-            // Відновлюємо позиції прокрутки під час перетягування
             const scheduleContent = document.getElementById('scheduleContent');
             const availableTiles = document.querySelector('.available-tiles-section');
             
@@ -2130,12 +2238,11 @@
             e.stopPropagation();
             
             const td = e.currentTarget;
-            const lessonCard = td.querySelector('.lesson-card, .multiple-lessons');
+            const lessonCard = td.querySelector('.lesson-card');
             if (lessonCard) {
                 lessonCard.classList.remove('drag-over');
             }
             
-            // Отримуємо дані з першого lesson-card в td
             const firstCard = td.querySelector('.lesson-card');
             if (!firstCard) return;
             
@@ -2146,20 +2253,17 @@
             
             const schedule = schedules[classId];
             
-            // Зберігаємо позицію прокрутки ОБОХ контейнерів
             const scheduleWrapper = document.querySelector('.schedule-wrapper');
             const scheduleContent = document.getElementById('scheduleContent');
             const wrapperScrollTop = scheduleWrapper ? scheduleWrapper.scrollTop : 0;
             const wrapperScrollLeft = scheduleWrapper ? scheduleWrapper.scrollLeft : 0;
             const contentScrollTop = scheduleContent ? scheduleContent.scrollTop : 0;
             
-            // Якщо переміщуємо з розкладу
             if (fromSchedule && originalSlot) {
                 const oldKey = `${originalSlot.day}-${originalSlot.lesson}`;
                 const oldLessons = schedules[originalSlot.classId][oldKey];
                 
                 if (Array.isArray(oldLessons)) {
-                    // Видаляємо конкретний урок з масиву
                     schedules[originalSlot.classId][oldKey] = oldLessons.filter(l => l.subjectId !== draggedSubjectId);
                     if (schedules[originalSlot.classId][oldKey].length === 0) {
                         delete schedules[originalSlot.classId][oldKey];
@@ -2169,24 +2273,22 @@
                 }
             }
             
-            // Додаємо урок до нового слоту
             const subject = subjects.find(s => s.id === draggedSubjectId);
+            if (!subject) return;
+            
             const newLesson = {
                 subjectId: subject.id,
                 name: subject.name,
                 teacher: subject.teacher
             };
             
-            // Якщо в слоті вже є урок(и), додаємо до масиву
             if (schedule[key]) {
                 if (Array.isArray(schedule[key])) {
-                    // Перевіряємо чи такий урок вже не доданий
                     const exists = schedule[key].some(l => l.subjectId === subject.id);
                     if (!exists) {
                         schedule[key].push(newLesson);
                     }
                 } else {
-                    // Перетворюємо в масив
                     const existingLesson = schedule[key];
                     if (existingLesson.subjectId !== subject.id) {
                         schedule[key] = [existingLesson, newLesson];
@@ -2198,11 +2300,8 @@
             
             renderSchedules();
             renderSubjects();
-            
-            // Автозбереження
             saveToLocalStorage();
             
-            // Відновлюємо позицію прокрутки після рендерингу ДЛЯ ВСІХ КОНТЕЙНЕРІВ
             setTimeout(() => {
                 const newScheduleWrapper = document.querySelector('.schedule-wrapper');
                 const newScheduleContent = document.getElementById('scheduleContent');
@@ -2233,20 +2332,17 @@
             
             const schedule = schedules[classId];
             
-            // Зберігаємо позицію прокрутки ОБОХ контейнерів
             const scheduleWrapper = document.querySelector('.schedule-wrapper');
             const scheduleContent = document.getElementById('scheduleContent');
             const wrapperScrollTop = scheduleWrapper ? scheduleWrapper.scrollTop : 0;
             const wrapperScrollLeft = scheduleWrapper ? scheduleWrapper.scrollLeft : 0;
             const contentScrollTop = scheduleContent ? scheduleContent.scrollTop : 0;
             
-            // Якщо переміщуємо з розкладу
             if (fromSchedule && originalSlot) {
                 const oldKey = `${originalSlot.day}-${originalSlot.lesson}`;
                 const oldLessons = schedules[originalSlot.classId][oldKey];
                 
                 if (Array.isArray(oldLessons)) {
-                    // Видаляємо конкретний урок з масиву
                     schedules[originalSlot.classId][oldKey] = oldLessons.filter(l => l.subjectId !== draggedSubjectId);
                     if (schedules[originalSlot.classId][oldKey].length === 0) {
                         delete schedules[originalSlot.classId][oldKey];
@@ -2256,24 +2352,22 @@
                 }
             }
             
-            // Додаємо урок до нового слоту
             const subject = subjects.find(s => s.id === draggedSubjectId);
+            if (!subject) return;
+            
             const newLesson = {
                 subjectId: subject.id,
                 name: subject.name,
                 teacher: subject.teacher
             };
             
-            // Якщо в слоті вже є урок(и), додаємо до масиву
             if (schedule[key]) {
                 if (Array.isArray(schedule[key])) {
-                    // Перевіряємо чи такий урок вже не доданий
                     const exists = schedule[key].some(l => l.subjectId === subject.id);
                     if (!exists) {
                         schedule[key].push(newLesson);
                     }
                 } else {
-                    // Перетворюємо в масив
                     const existingLesson = schedule[key];
                     if (existingLesson.subjectId !== subject.id) {
                         schedule[key] = [existingLesson, newLesson];
@@ -2285,11 +2379,8 @@
             
             renderSchedules();
             renderSubjects();
-            
-            // Автозбереження
             saveToLocalStorage();
             
-            // Відновлюємо позицію прокрутки після рендерингу ДЛЯ ВСІХ КОНТЕЙНЕРІВ
             setTimeout(() => {
                 const newScheduleWrapper = document.querySelector('.schedule-wrapper');
                 const newScheduleContent = document.getElementById('scheduleContent');
@@ -2309,7 +2400,6 @@
         }
 
         function handleContainerDragOver(e) {
-            // Забороняємо перетягування в контейнери
             e.dataTransfer.dropEffect = 'none';
         }
 
@@ -2318,12 +2408,11 @@
         }
 
         function handleContainerDrop(e) {
-            // Забороняємо drop в контейнери
             e.preventDefault();
             return false;
         }
 
-        // Функції збереження та завантаження
+        // ===== Зміна кількості годин =====
         function changeSubjectHours(subjectId, change, event) {
             if (event) {
                 event.preventDefault();
@@ -2357,186 +2446,20 @@
                 return;
             }
             
-            // ЗМІНЮЄМО ЗНАЧЕННЯ
             subject.hours = newHours;
-            const availableCount = newHours - usedCount;
             
-            // ПЕРЕВІРЯЄМО ЧИ ПОТРІБНО ПОКАЗАТИ/ПРИХОВАТИ БЛОК available-tiles-section
-            let hasAvailableLessons = false;
-            subjects.forEach(s => {
-                let used = 0;
-                classes.forEach(cls => {
-                    const schedule = schedules[cls.id] || {};
-                    Object.values(schedule).forEach(slot => {
-                        if (Array.isArray(slot)) {
-                            used += slot.filter(lesson => lesson.subjectId === s.id).length;
-                        } else if (slot && slot.subjectId === s.id) {
-                            used++;
-                        }
-                    });
-                });
-                if (s.hours - used > 0) {
-                    hasAvailableLessons = true;
-                }
-            });
+            renderSchedules();
+            renderSubjects();
+            saveToLocalStorage();
             
-            // Якщо блок треба показати, але його немає - рендеримо весь розклад
-            const availableTilesSection = document.querySelector('.available-tiles-section');
-            const needsSection = hasAvailableLessons;
-            const hasSection = availableTilesSection !== null;
-            
-            if (needsSection && !hasSection) {
-                // Потрібен блок, але його немає - повний ререндеринг
-                renderSchedules();
-                // ТАКОЖ ОНОВЛЮЄМО ВКЛАДКУ ПРЕДМЕТІВ
-                renderSubjects();
-                // Автозбереження
-                saveToLocalStorage();
-                return; // Виходимо, бо renderSchedules і renderSubjects все оновили
-            } else if (!needsSection && hasSection) {
-                // Блок є, але він більше не потрібен - видаляємо його
-                availableTilesSection.remove();
-            }
-            
-            // ОНОВЛЮЄМО БЛОК НА ВКЛАДЦІ "РОЗКЛАД" (якщо він є)
-            if (availableTilesSection) {
-                const scheduleSubjectItems = availableTilesSection.querySelectorAll('.subject-item');
-                let subjectItemFound = false;
-                
-                scheduleSubjectItems.forEach(item => {
-                    const subjectIdInDom = item.querySelector('.tiles-container')?.dataset.subjectId;
-                    if (subjectIdInDom == subjectId) {
-                        subjectItemFound = true;
-                        
-                        // Якщо немає доступних уроків - видаляємо цей предмет з блоку
-                        if (availableCount === 0) {
-                            item.remove();
-                            return;
-                        }
-                        
-                        const teacherDiv = item.querySelector('.subject-teacher');
-                        if (teacherDiv) {
-                            teacherDiv.textContent = `Вчитель: ${subject.teacher} • Доступно: ${availableCount} з ${newHours}`;
-                        }
-                        
-                        // Оновлюємо плитки
-                        const tilesContainer = item.querySelector('.tiles-container');
-                        if (tilesContainer) {
-                            const color = getSubjectColor(subjectId);
-                            let tilesHtml = '';
-                            
-                            for (let i = 0; i < availableCount; i++) {
-                                tilesHtml += `
-                                    <div class="lesson-tile" 
-                                         draggable="true"
-                                         data-subject-id="${subjectId}"
-                                         style="background: ${color};">
-                                        ${subject.name}
-                                    </div>
-                                `;
-                            }
-                            
-                            tilesContainer.innerHTML = tilesHtml;
-                            attachScheduleDragHandlers();
-                        }
-                    }
-                });
-                
-                // Якщо предмета не було в блоку, але тепер є доступні уроки - додаємо його
-                if (!subjectItemFound && availableCount > 0) {
-                    const color = getSubjectColor(subjectId);
-                    let tilesHtml = '';
-                    
-                    for (let i = 0; i < availableCount; i++) {
-                        tilesHtml += `
-                            <div class="lesson-tile" 
-                                 draggable="true"
-                                 data-subject-id="${subjectId}"
-                                 style="background: ${color};">
-                                ${subject.name}
-                            </div>
-                        `;
-                    }
-                    
-                    const newSubjectItem = document.createElement('div');
-                    newSubjectItem.className = 'subject-item';
-                    newSubjectItem.style.marginBottom = '15px';
-                    newSubjectItem.innerHTML = `
-                        <div class="subject-header">
-                            <div class="subject-info">
-                                <div class="subject-name">${subject.name}</div>
-                                <div class="subject-teacher">Вчитель: ${subject.teacher} • Доступно: ${availableCount} з ${newHours}</div>
-                            </div>
-                            <div style="display: flex; gap: 5px; align-items: center;">
-                                <button class="btn-hour-control" onclick="changeSubjectHours(${subjectId}, -1, event);" title="Зменшити кількість годин">−</button>
-                                <button class="btn-hour-control" onclick="changeSubjectHours(${subjectId}, 1, event);" title="Збільшити кількість годин">+</button>
-                            </div>
-                        </div>
-                        <div class="tiles-container" data-subject-id="${subjectId}">
-                            ${tilesHtml}
-                        </div>
-                    `;
-                    
-                    availableTilesSection.appendChild(newSubjectItem);
-                    attachScheduleDragHandlers();
-                }
-            }
-            
-            // ОНОВЛЮЄМО БЛОК НА ВКЛАДЦІ "ПРЕДМЕТИ І ВЧИТЕЛІ"
-            const subjectListItems = document.querySelectorAll('#subjectList .subject-item');
-            subjectListItems.forEach(item => {
-                const subjectIdInDom = item.querySelector('.tiles-container')?.dataset.subjectId;
-                if (subjectIdInDom == subjectId) {
-                    // Оновлюємо лічильник годин
-                    const hoursSpan = item.querySelector('.subject-hours');
-                    if (hoursSpan) {
-                        hoursSpan.textContent = `${usedCount}/${newHours} год`;
-                    }
-                    
-                    // Оновлюємо плитки
-                    const tilesContainer = item.querySelector('.tiles-container');
-                    if (tilesContainer) {
-                        const color = getSubjectColor(subjectId);
-                        let tilesHtml = '';
-                        
-                        for (let i = 0; i < newHours; i++) {
-                            const isUsed = i < usedCount;
-                            tilesHtml += `
-                                <div class="lesson-tile ${isUsed ? 'used' : ''}" 
-                                     draggable="${!isUsed}"
-                                     data-subject-id="${subjectId}"
-                                     data-tile-index="${i}"
-                                     style="background: ${color};">
-                                    ${subject.name}
-                                </div>
-                            `;
-                        }
-                        
-                        tilesContainer.innerHTML = tilesHtml;
-                        attachTileDragHandlers();
-                    }
-                }
-            });
-            
-            // Оновлюємо статистику на вкладці предметів
-            const totalHours = subjects.reduce((sum, s) => sum + s.hours, 0);
-            const totalHoursElement = document.getElementById('totalHours');
-            if (totalHoursElement) {
-                totalHoursElement.textContent = totalHours;
-            }
-            
-            // Blur кнопки
             if (event && event.target) {
                 event.target.blur();
             }
-            
-            // Автозбереження
-            saveToLocalStorage();
         }
 
+        // ===== Інші функції =====
         function clearDemoData() {
             if (confirm('Ви впевнені, що хочете видалити всі дані (класи, предмети, розклад)?')) {
-                // Зберігаємо позицію прокрутки
                 const scheduleContent = document.getElementById('scheduleContent');
                 const scrollTop = scheduleContent ? scheduleContent.scrollTop : 0;
                 
@@ -2549,11 +2472,8 @@
                 renderClasses();
                 renderSubjects();
                 renderSchedules();
-                
-                // Очищаємо localStorage
                 clearLocalStorage();
                 
-                // Відновлюємо позицію прокрутки
                 setTimeout(() => {
                     if (scheduleContent) {
                         scheduleContent.scrollTop = scrollTop;
@@ -2564,7 +2484,6 @@
             }
         }
 
-        // Функція редагування уроку прямо в розкладі
         function editLessonInSchedule(classId, day, lessonNum, subjectId = null) {
             const key = `${day}-${lessonNum}`;
             
@@ -2572,7 +2491,6 @@
                 return;
             }
             
-            // Зберігаємо позицію прокрутки
             const scheduleWrapper = document.querySelector('.schedule-wrapper');
             const scrollTop = scheduleWrapper ? scheduleWrapper.scrollTop : 0;
             const scrollLeft = scheduleWrapper ? scheduleWrapper.scrollLeft : 0;
@@ -2580,7 +2498,6 @@
             const slot = schedules[classId][key];
             let lessonToEdit = null;
             
-            // Знаходимо урок для редагування
             if (Array.isArray(slot) && subjectId !== null) {
                 lessonToEdit = slot.find(l => l.subjectId === subjectId);
             } else if (!Array.isArray(slot)) {
@@ -2591,44 +2508,28 @@
                 return;
             }
             
-            // Запитуємо нову назву предмету
             const newSubjectName = prompt('Введіть нову назву предмету:', lessonToEdit.name);
-            
-            if (newSubjectName === null) {
-                return; // Користувач натиснув "Скасувати"
-            }
-            
+            if (newSubjectName === null) return;
             if (!newSubjectName || !newSubjectName.trim()) {
                 alert('⚠️ Назва предмету не може бути порожньою');
                 return;
             }
             
-            // Запитуємо нове ім'я вчителя
             const newTeacherName = prompt('Введіть нове ім\'я вчителя:', lessonToEdit.teacher);
-            
-            if (newTeacherName === null) {
-                return; // Користувач натиснув "Скасувати"
-            }
-            
+            if (newTeacherName === null) return;
             if (!newTeacherName || !newTeacherName.trim()) {
                 alert('⚠️ Ім\'я вчителя не може бути порожнім');
                 return;
             }
             
-            // Оновлюємо дані уроку
             lessonToEdit.name = newSubjectName.trim();
             lessonToEdit.teacher = newTeacherName.trim();
             
-            // Також оновлюємо в об'єкті subject, якщо він існує
             const subject = subjects.find(s => s.id === lessonToEdit.subjectId);
             if (subject) {
-                const oldSubjectName = subject.name;
-                const oldTeacherName = subject.teacher;
-                
                 subject.name = newSubjectName.trim();
                 subject.teacher = newTeacherName.trim();
                 
-                // Оновлюємо всі інші уроки цього предмету в розкладі
                 Object.keys(schedules).forEach(cId => {
                     Object.keys(schedules[cId]).forEach(k => {
                         const les = schedules[cId][k];
@@ -2645,21 +2546,13 @@
                         }
                     });
                 });
-                
-                console.log(`✅ Предмет оновлено: "${oldSubjectName}" (${oldTeacherName}) → "${newSubjectName.trim()}" (${newTeacherName.trim()})`);
             }
             
-            // Оновлюємо інтерфейс
             renderSchedules();
             renderSubjects();
-            
-            // Автозбереження
             saveToLocalStorage();
-            
-            // Оновлюємо список вчителів
             updateTeachersList();
             
-            // Відновлюємо позицію прокрутки
             setTimeout(() => {
                 const newScheduleWrapper = document.querySelector('.schedule-wrapper');
                 if (newScheduleWrapper) {
@@ -2673,31 +2566,25 @@
             const key = `${day}-${lesson}`;
             
             if (schedules[classId] && schedules[classId][key]) {
-                // Зберігаємо позицію прокрутки
                 const scheduleWrapper = document.querySelector('.schedule-wrapper');
                 const scrollTop = scheduleWrapper ? scheduleWrapper.scrollTop : 0;
                 const scrollLeft = scheduleWrapper ? scheduleWrapper.scrollLeft : 0;
                 
                 const slot = schedules[classId][key];
                 
-                // Якщо це масив уроків і вказано subjectId
                 if (Array.isArray(slot) && subjectId !== null) {
                     schedules[classId][key] = slot.filter(l => l.subjectId !== subjectId);
                     if (schedules[classId][key].length === 0) {
                         delete schedules[classId][key];
                     }
                 } else {
-                    // Видаляємо весь слот
                     delete schedules[classId][key];
                 }
                 
                 renderSchedules();
                 renderSubjects();
-                
-                // Автозбереження
                 saveToLocalStorage();
                 
-                // Відновлюємо позицію прокрутки після рендерингу
                 setTimeout(() => {
                     const newScheduleWrapper = document.querySelector('.schedule-wrapper');
                     if (newScheduleWrapper) {
@@ -2708,29 +2595,24 @@
             }
         }
 
-        // Функція експорту в Excel
         function checkTeacherConflicts() {
-            // Зберігаємо позицію прокрутки
             const scheduleContent = document.getElementById('scheduleContent');
             const scrollTop = scheduleContent ? scheduleContent.scrollTop : 0;
             
             const conflicts = [];
             
-            // Перевіряємо кожен день та урок
             days.forEach((day, dayIndex) => {
                 for (let lessonNum = 0; lessonNum < lessons; lessonNum++) {
                     const key = `${dayIndex}-${lessonNum}`;
                     const teachersInThisSlot = {};
                     
-                    // Збираємо інформацію про вчителів в цьому слоті
                     classes.forEach(cls => {
                         const lesson = schedules[cls.id][key];
                         
                         if (lesson) {
-                            // Обробляємо як одиночний урок, так і масив
-                            const lessons = Array.isArray(lesson) ? lesson : [lesson];
+                            const lessons_arr = Array.isArray(lesson) ? lesson : [lesson];
                             
-                            lessons.forEach(les => {
+                            lessons_arr.forEach(les => {
                                 if (!teachersInThisSlot[les.teacher]) {
                                     teachersInThisSlot[les.teacher] = [];
                                 }
@@ -2742,7 +2624,6 @@
                         }
                     });
                     
-                    // Перевіряємо чи є вчителі які ведуть урок у більш ніж одному класі
                     Object.keys(teachersInThisSlot).forEach(teacher => {
                         if (teachersInThisSlot[teacher].length > 1) {
                             conflicts.push({
@@ -2756,14 +2637,12 @@
                 }
             });
             
-            // Відновлюємо позицію прокрутки перед показом alert
             setTimeout(() => {
                 if (scheduleContent) {
                     scheduleContent.scrollTop = scrollTop;
                 }
             }, 0);
             
-            // Відображаємо результати
             if (conflicts.length === 0) {
                 alert('✅ Збігів не виявлено! Розклад складено правильно.');
             } else {
@@ -2776,7 +2655,6 @@
                 alert(message);
             }
             
-            // Відновлюємо позицію прокрутки після закриття alert
             setTimeout(() => {
                 if (scheduleContent) {
                     scheduleContent.scrollTop = scrollTop;
@@ -2785,67 +2663,45 @@
         }
 
         function exportToExcel() {
-            // Зберігаємо позицію прокрутки
-            const scheduleContent = document.getElementById('scheduleContent');
-            const scrollTop = scheduleContent ? scheduleContent.scrollTop : 0;
-            
             if (classes.length === 0 || subjects.length === 0) {
                 alert('⚠️ Немає даних для експорту. Додайте класи та предмети.');
-                setTimeout(() => {
-                    if (scheduleContent) scheduleContent.scrollTop = scrollTop;
-                }, 0);
                 return;
             }
 
-            // Перевіряємо чи завантажена бібліотека SheetJS
             if (typeof XLSX === 'undefined') {
                 alert('⏳ Завантаження бібліотеки Excel... Спробуйте ще раз через секунду.');
-                setTimeout(() => {
-                    if (scheduleContent) scheduleContent.scrollTop = scrollTop;
-                }, 0);
                 return;
             }
 
             try {
-                // Створюємо workbook
                 const wb = XLSX.utils.book_new();
-
-                // Створюємо головну таблицю - точна копія таблиці розкладу
                 const data = [];
                 
-                // Заголовок
                 const headerRow = ['День', 'Урок'];
                 classes.forEach(cls => headerRow.push(cls.name));
                 data.push(headerRow);
 
-                // Заповнюємо дані по днях та урокам
                 days.forEach((day, dayIndex) => {
                     for (let i = 1; i <= lessons; i++) {
                         const row = [];
                         
-                        // Додаємо день тільки для першого уроку
                         if (i === 1) {
                             row.push(day);
                         } else {
-                            row.push(''); // Порожня клітинка для об'єднання
+                            row.push('');
                         }
                         
-                        // Номер уроку
                         row.push(i);
                         
-                        // Для кожного класу
                         classes.forEach(cls => {
                             const key = `${dayIndex}-${i-1}`;
                             const lesson = schedules[cls.id][key];
                             
                             if (lesson) {
-                                // Перевіряємо чи це масив уроків (підгрупи)
                                 if (Array.isArray(lesson)) {
-                                    // Об'єднуємо всі уроки в одну клітинку
                                     const lessonsText = lesson.map(l => `${l.name}\n(${l.teacher})`).join('\n---\n');
                                     row.push(lessonsText);
                                 } else {
-                                    // Один урок
                                     row.push(`${lesson.name}\n(${lesson.teacher})`);
                                 }
                             } else {
@@ -2857,29 +2713,24 @@
                     }
                 });
 
-                // Створюємо worksheet
                 const ws = XLSX.utils.aoa_to_sheet(data);
 
-                // Встановлюємо ширину колонок
                 const colWidths = [
-                    { wch: 12 },  // День
-                    { wch: 8 }    // Урок
+                    { wch: 12 },
+                    { wch: 8 }
                 ];
-                classes.forEach(() => colWidths.push({ wch: 25 })); // Класи
+                classes.forEach(() => colWidths.push({ wch: 25 }));
                 ws['!cols'] = colWidths;
 
-                // Встановлюємо висоту рядків
                 ws['!rows'] = [];
                 for (let i = 0; i < data.length; i++) {
-                    ws['!rows'].push({ hpt: i === 0 ? 20 : 50 }); // Заголовок менший, решта більші
+                    ws['!rows'].push({ hpt: i === 0 ? 20 : 50 });
                 }
 
-                // Об'єднуємо клітинки для днів тижня
                 if (!ws['!merges']) ws['!merges'] = [];
                 
-                let currentRow = 1; // Починаємо з 1 (0 - заголовок)
+                let currentRow = 1;
                 days.forEach(() => {
-                    // Об'єднуємо клітинки дня (lessons рядків)
                     ws['!merges'].push({
                         s: { r: currentRow, c: 0 },
                         e: { r: currentRow + lessons - 1, c: 0 }
@@ -2887,7 +2738,6 @@
                     currentRow += lessons;
                 });
 
-                // Застосовуємо стилі до всіх клітинок
                 const range = XLSX.utils.decode_range(ws['!ref']);
                 
                 for (let R = range.s.r; R <= range.e.r; ++R) {
@@ -2899,7 +2749,6 @@
                             ws[cell_ref] = { t: 's', v: '' };
                         }
                         
-                        // Базові стилі для всіх клітинок
                         ws[cell_ref].s = {
                             alignment: {
                                 horizontal: 'center',
@@ -2914,7 +2763,6 @@
                             }
                         };
                         
-                        // Стилі для заголовків
                         if (R === 0) {
                             ws[cell_ref].s.fill = {
                                 patternType: 'solid',
@@ -2925,9 +2773,7 @@
                                 color: { rgb: 'FFFFFF' },
                                 sz: 12
                             };
-                        }
-                        // Стилі для колонки "День"
-                        else if (C === 0) {
+                        } else if (C === 0) {
                             ws[cell_ref].s.fill = {
                                 patternType: 'solid',
                                 fgColor: { rgb: 'e9ecef' }
@@ -2936,9 +2782,7 @@
                                 bold: true,
                                 sz: 11
                             };
-                        }
-                        // Стилі для колонки "Урок"
-                        else if (C === 1) {
+                        } else if (C === 1) {
                             ws[cell_ref].s.fill = {
                                 patternType: 'solid',
                                 fgColor: { rgb: 'f8f9fa' }
@@ -2951,10 +2795,8 @@
                     }
                 }
 
-                // Додаємо worksheet до workbook
                 XLSX.utils.book_append_sheet(wb, ws, 'Розклад');
 
-                // Створюємо аркуш зі списком предметів
                 const subjectsData = [['Предмет', 'Вчитель', 'Годин/тиждень', 'Використано']];
                 subjects.forEach(subject => {
                     let usedCount = 0;
@@ -2974,7 +2816,6 @@
                 const subjectsWs = XLSX.utils.aoa_to_sheet(subjectsData);
                 subjectsWs['!cols'] = [{ wch: 25 }, { wch: 25 }, { wch: 15 }, { wch: 15 }];
                 
-                // Стилі для аркушу предметів
                 const subjectsRange = XLSX.utils.decode_range(subjectsWs['!ref']);
                 for (let R = subjectsRange.s.r; R <= subjectsRange.e.r; ++R) {
                     for (let C = subjectsRange.s.c; C <= subjectsRange.e.c; ++C) {
@@ -3011,26 +2852,11 @@
                 
                 XLSX.utils.book_append_sheet(wb, subjectsWs, 'Предмети');
 
-                // Зберігаємо файл
                 const fileName = `rozklad_${new Date().toISOString().split('T')[0]}.xlsx`;
                 XLSX.writeFile(wb, fileName);
 
-                // Відновлюємо позицію прокрутки
-                setTimeout(() => {
-                    if (scheduleContent) {
-                        scheduleContent.scrollTop = scrollTop;
-                    }
-                }, 0);
-
                 alert('✅ Розклад успішно експортовано в Excel!');
             } catch (error) {
-                // Відновлюємо позицію прокрутки у випадку помилки
-                setTimeout(() => {
-                    if (scheduleContent) {
-                        scheduleContent.scrollTop = scrollTop;
-                    }
-                }, 0);
-                
                 alert('❌ Помилка при експорті в Excel: ' + error.message);
                 console.error('Помилка експорту:', error);
             }
@@ -3040,7 +2866,6 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            // Перевіряємо чи завантажена бібліотека SheetJS
             if (typeof XLSX === 'undefined') {
                 alert('⏳ Завантаження бібліотеки Excel... Спробуйте ще раз через секунду.');
                 return;
@@ -3052,9 +2877,6 @@
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
 
-                    console.log('📊 Аркуші в файлі:', workbook.SheetNames);
-
-                    // Перевіряємо чи є аркуш "Розклад"
                     if (!workbook.SheetNames.includes('Розклад')) {
                         alert('⚠️ У файлі не знайдено аркуш "Розклад". Переконайтеся, що файл створено через функцію експорту.');
                         return;
@@ -3063,40 +2885,30 @@
                     const scheduleSheet = workbook.Sheets['Розклад'];
                     const scheduleData = XLSX.utils.sheet_to_json(scheduleSheet, { header: 1, defval: '' });
 
-                    console.log('📋 Зчитано рядків:', scheduleData.length);
-                    console.log('📋 Перші 3 рядки:', scheduleData.slice(0, 3));
-
                     if (scheduleData.length < 2) {
                         alert('⚠️ Файл не містить даних розкладу.');
                         return;
                     }
 
-                    // Зчитуємо заголовки (назви класів)
                     const headers = scheduleData[0];
-                    const classNames = headers.slice(2); // Пропускаємо "День" та "Урок"
-
-                    console.log('🎓 Класи з файлу:', classNames);
+                    const classNames = headers.slice(2);
 
                     if (classNames.length === 0) {
                         alert('⚠️ У файлі не знайдено класів.');
                         return;
                     }
 
-                    // Імпортуємо предмети СПОЧАТКУ
                     const newSubjects = [];
-                    const subjectMapping = {}; // Відповідність назва-вчитель -> id
-                    let tempSubjectId = 1; // Тимчасовий лічильник для предметів
+                    const subjectMapping = {};
+                    let tempSubjectId = 1;
                     
                     if (workbook.SheetNames.includes('Предмети')) {
                         const subjectsSheet = workbook.Sheets['Предмети'];
                         const subjectsData = XLSX.utils.sheet_to_json(subjectsSheet, { header: 1, defval: '' });
                         
-                        console.log('📚 Предмети з файлу:', subjectsData.length - 1);
-                        
-                        // Пропускаємо заголовок
                         for (let i = 1; i < subjectsData.length; i++) {
                             const row = subjectsData[i];
-                            if (row[0] && row[1]) { // Назва та вчитель
+                            if (row[0] && row[1]) {
                                 const subjectName = row[0].toString().trim();
                                 const teacherName = row[1].toString().trim();
                                 const hours = parseInt(row[2]) || 1;
@@ -3110,15 +2922,13 @@
                                 
                                 newSubjects.push(newSubject);
                                 subjectMapping[`${subjectName}|${teacherName}`] = newSubject;
-                                console.log(`  ✓ ${subjectName} - ${teacherName} (${hours} год)`);
                             }
                         }
                     }
 
-                    // Створюємо нові класи
                     const newClasses = [];
-                    const classMapping = {}; // Відповідність назва -> id
-                    let tempClassId = 1; // Тимчасовий лічильник для класів
+                    const classMapping = {};
+                    let tempClassId = 1;
                     
                     classNames.forEach(className => {
                         if (className && className.trim()) {
@@ -3131,9 +2941,6 @@
                         }
                     });
 
-                    console.log('🎓 Створено класів:', newClasses.length);
-
-                    // Парсимо розклад
                     const newSchedules = {};
                     newClasses.forEach(cls => {
                         newSchedules[cls.id] = {};
@@ -3146,25 +2953,19 @@
                     for (let i = 1; i < scheduleData.length; i++) {
                         const row = scheduleData[i];
                         
-                        // Якщо є день - це початок нового дня
                         if (row[0] && row[0].toString().trim()) {
                             currentDay = row[0].toString().trim();
                             dayIndex = days.indexOf(currentDay);
-                            if (dayIndex === -1) {
-                                console.warn(`⚠️ Невідомий день: ${currentDay}`);
-                                continue;
-                            }
-                            console.log(`📅 День: ${currentDay} (індекс ${dayIndex})`);
+                            if (dayIndex === -1) continue;
                         }
 
                         if (dayIndex === -1) continue;
 
-                        const lessonNum = parseInt(row[1]) - 1; // Номер уроку (0-based)
+                        const lessonNum = parseInt(row[1]) - 1;
                         if (isNaN(lessonNum) || lessonNum < 0 || lessonNum >= lessons) {
                             continue;
                         }
 
-                        // Обробляємо кожен клас
                         classNames.forEach((className, classIndex) => {
                             const cellValue = row[2 + classIndex];
                             if (!cellValue || cellValue.toString().trim() === '') return;
@@ -3174,9 +2975,8 @@
 
                             const key = `${dayIndex}-${lessonNum}`;
                             
-                            // Парсимо вміст клітинки
                             const parsedLessons = parseLessonCell(cellValue.toString(), newSubjects, subjectMapping, tempSubjectId);
-                            tempSubjectId = parsedLessons.nextId; // Оновлюємо лічильник
+                            tempSubjectId = parsedLessons.nextId;
                             
                             if (parsedLessons.lessons.length === 1) {
                                 newSchedules[classId][key] = parsedLessons.lessons[0];
@@ -3188,10 +2988,6 @@
                         });
                     }
 
-                    console.log('📖 Імпортовано уроків:', lessonsImported);
-                    console.log('📚 Створено нових предметів:', newSubjects.length);
-
-                    // Підтвердження імпорту
                     const confirmation = confirm(
                         `📥 Імпорт з Excel\n\n` +
                         `Знайдено:\n` +
@@ -3204,29 +3000,17 @@
 
                     if (!confirmation) return;
 
-                    // Оновлюємо глобальні ID
                     nextClassId = tempClassId;
                     nextSubjectId = tempSubjectId;
 
-                    // Замінюємо дані
                     classes = newClasses;
                     subjects = newSubjects;
                     schedules = newSchedules;
 
-                    console.log('✅ Дані замінено');
-                    console.log('Classes:', classes);
-                    console.log('Subjects:', subjects);
-                    console.log('Schedules:', schedules);
-
-                    // Оновлюємо інтерфейс
                     renderClasses();
                     renderSubjects();
                     renderSchedules();
-                    
-                    // Автозбереження
                     saveToLocalStorage();
-                    
-                    // Оновлюємо список вчителів в звітах
                     updateTeachersList();
 
                     alert(`✅ Розклад успішно імпортовано!\n\nКласів: ${newClasses.length}\nПредметів: ${newSubjects.length}\nУроків: ${lessonsImported}`);
@@ -3234,13 +3018,10 @@
                 } catch (error) {
                     alert('❌ Помилка при імпорті з Excel: ' + error.message);
                     console.error('Помилка імпорту:', error);
-                    console.error('Stack:', error.stack);
                 }
             };
 
             reader.readAsArrayBuffer(file);
-            
-            // Очищаємо input
             event.target.value = '';
         }
 
@@ -3252,18 +3033,12 @@
                 return { lessons: [], nextId: nextId };
             }
             
-            // Розділяємо по "---" якщо є кілька уроків
             const lessonTexts = cellValue.split('---').map(t => t.trim()).filter(t => t.length > 0);
-            
-            console.log(`  🔍 Парсинг клітинки: "${cellValue}" -> ${lessonTexts.length} урок(ів)`);
             
             lessonTexts.forEach(lessonText => {
                 if (!lessonText) return;
                 
-                // Парсимо формат: "Назва предмету\n(Вчитель)" або "Назва предмету (Вчитель)"
                 let match = lessonText.match(/^(.+?)\s*[\n\r]+\s*\((.+?)\)\s*$/);
-                
-                // Якщо не знайдено, пробуємо альтернативний формат
                 if (!match) {
                     match = lessonText.match(/^(.+?)\s*\((.+?)\)\s*$/);
                 }
@@ -3272,20 +3047,15 @@
                     const subjectName = match[1].trim();
                     const teacherName = match[2].trim();
                     
-                    console.log(`    📖 Знайдено: ${subjectName} - ${teacherName}`);
-                    
-                    // Шукаємо предмет в імпортованих
                     const key = `${subjectName}|${teacherName}`;
                     let subject = subjectMapping[key];
                     
                     if (!subject) {
-                        console.log(`    ➕ Створюємо новий предмет: ${subjectName}`);
-                        // Створюємо новий предмет
                         subject = {
                             id: nextId++,
                             name: subjectName,
                             teacher: teacherName,
-                            hours: 1 // Початкова кількість годин
+                            hours: 1
                         };
                         newSubjects.push(subject);
                         subjectMapping[key] = subject;
@@ -3296,15 +3066,13 @@
                         name: subject.name,
                         teacher: subject.teacher
                     });
-                } else {
-                    console.warn(`    ⚠️ Не вдалося розпізнати формат: "${lessonText}"`);
                 }
             });
             
             return { lessons: lessons, nextId: nextId };
         }
 
-        // Функції автозбереження в localStorage
+        // ===== Збереження в localStorage =====
         function saveToLocalStorage() {
             try {
                 const data = {
@@ -3327,14 +3095,11 @@
                 const saved = localStorage.getItem('rozklad_data');
                 if (saved) {
                     const data = JSON.parse(saved);
-                    
-                    // Завантажуємо дані
                     classes = data.classes || classes;
                     subjects = data.subjects || subjects;
                     schedules = data.schedules || schedules;
                     nextClassId = data.nextClassId || nextClassId;
                     nextSubjectId = data.nextSubjectId || nextSubjectId;
-                    
                     console.log('✅ Дані завантажено з localStorage');
                     return true;
                 }
@@ -3353,7 +3118,7 @@
             }
         }
 
-        // Функціонал лупи
+        // ===== Лупа =====
         let magnifierActive = false;
         let magnifierZoom = 2;
 
@@ -3384,54 +3149,42 @@
             
             magnifier.style.display = 'block';
             
-            // Розмір лупи
             const magnifierSize = 200;
             const halfSize = magnifierSize / 2;
             
-            // Розраховуємо позицію лупи
             let magnifierX = e.pageX - halfSize;
             let magnifierY = e.pageY - halfSize;
             
-            // Перевіряємо межі екрану та коригуємо позицію
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
             const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
             const scrollY = window.pageYOffset || document.documentElement.scrollTop;
             
-            // Права межа
             if (magnifierX + magnifierSize > scrollX + viewportWidth) {
                 magnifierX = scrollX + viewportWidth - magnifierSize - 10;
             }
-            // Ліва межа
             if (magnifierX < scrollX) {
                 magnifierX = scrollX + 10;
             }
-            // Нижня межа
             if (magnifierY + magnifierSize > scrollY + viewportHeight) {
                 magnifierY = scrollY + viewportHeight - magnifierSize - 10;
             }
-            // Верхня межа
             if (magnifierY < scrollY) {
                 magnifierY = scrollY + 10;
             }
             
-            // Позиціонуємо лупу
             magnifier.style.left = magnifierX + 'px';
             magnifier.style.top = magnifierY + 'px';
             
-            // Отримуємо координати відносно schedule-wrapper (використовуємо оригінальну позицію курсора)
             const wrapperRect = scheduleWrapper.getBoundingClientRect();
             const mouseX = e.clientX - wrapperRect.left + scheduleWrapper.scrollLeft;
             const mouseY = e.clientY - wrapperRect.top + scheduleWrapper.scrollTop;
             
-            // Отримуємо таблицю
             const table = scheduleWrapper.querySelector('.schedule-table');
             if (!table) return;
             
-            // Очищаємо попередній вміст
             magnifier.innerHTML = '';
             
-            // Створюємо контейнер для збільшеного вмісту
             const container = document.createElement('div');
             container.style.position = 'absolute';
             container.style.width = table.offsetWidth + 'px';
@@ -3441,7 +3194,6 @@
             container.style.left = (-mouseX * magnifierZoom + halfSize) + 'px';
             container.style.top = (-mouseY * magnifierZoom + halfSize) + 'px';
             
-            // Клонуємо таблицю
             const clone = table.cloneNode(true);
             clone.style.margin = '0';
             
@@ -3454,7 +3206,7 @@
             magnifier.style.display = 'none';
         }
 
-        // Функції для звітів
+        // ===== Звіти =====
         function showFreeTeachers() {
             const dayIndex = document.getElementById('reportDay').value;
             const lessonIndex = document.getElementById('reportLesson').value;
@@ -3468,13 +3220,11 @@
             const dayName = days[parseInt(dayIndex)];
             const lessonNum = parseInt(lessonIndex) + 1;
             
-            // Збираємо всіх унікальних вчителів
             const allTeachers = new Set();
             subjects.forEach(subject => {
                 allTeachers.add(subject.teacher);
             });
             
-            // Збираємо вчителів які викладають в обраний час
             const busyTeachers = new Set();
             const key = `${dayIndex}-${lessonIndex}`;
             
@@ -3489,7 +3239,6 @@
                 }
             });
             
-            // Знаходимо вільних вчителів
             const freeTeachers = [...allTeachers].filter(teacher => !busyTeachers.has(teacher));
             
             if (freeTeachers.length === 0) {
@@ -3508,7 +3257,6 @@
                 `;
                 
                 freeTeachers.sort().forEach(teacher => {
-                    // Знаходимо предмети цього вчителя
                     const teacherSubjects = subjects.filter(s => s.teacher === teacher).map(s => s.name).join(', ');
                     html += `
                         <div class="teacher-item">
@@ -3536,7 +3284,6 @@
                 return;
             }
             
-            // Збираємо розклад вчителя
             const teacherSchedule = {};
             
             days.forEach((day, dayIndex) => {
@@ -3546,7 +3293,6 @@
                 }
             });
             
-            // Проходимо по всіх класах і збираємо уроки вчителя
             classes.forEach(cls => {
                 Object.keys(schedules[cls.id]).forEach(key => {
                     const [dayIndex, lessonIndex] = key.split('-').map(Number);
@@ -3570,11 +3316,9 @@
                 });
             });
             
-            // Знаходимо предмети вчителя
             const teacherSubjects = subjects.filter(s => s.teacher === teacherName);
             const subjectsText = teacherSubjects.map(s => s.name).join(', ');
             
-            // Генеруємо таблицю
             let html = `
                 <div class="report-result">
                     <h4>👨‍🏫 Розклад вчителя: ${teacherName}</h4>
@@ -3642,7 +3386,6 @@
 
             classSelect.innerHTML = html;
 
-            // Зберігаємо попередній вибір, якщо клас ще існує
             if (previousValue && classes.some(cls => String(cls.id) === previousValue)) {
                 classSelect.value = previousValue;
             }
@@ -3666,14 +3409,12 @@
 
             const classSchedule = schedules[classId] || {};
 
-            // Параметри вигляду картки уроку залежно від режиму
             const cardPadding = isCompact ? '2px 4px' : '6px 8px';
             const cardMargin = isCompact ? '2px' : '5px';
             const subjectFontSize = isCompact ? '11px' : 'inherit';
             const teacherFontSize = isCompact ? '9px' : '12px';
             const cardRadius = isCompact ? '4px' : '6px';
 
-            // Генеруємо таблицю
             let html = `
                 <div class="report-result">
                     <h4>🏫 Розклад класу: ${cls.name}</h4>
@@ -3733,13 +3474,11 @@
         function updateTeachersList() {
             const teacherSelect = document.getElementById('reportTeacher');
             
-            // Збираємо всіх унікальних вчителів
             const allTeachers = new Set();
             subjects.forEach(subject => {
                 allTeachers.add(subject.teacher);
             });
             
-            // Сортуємо і генеруємо опції
             const sortedTeachers = [...allTeachers].sort();
             
             let html = '<option value="">-- Оберіть вчителя --</option>';
@@ -3758,7 +3497,6 @@
                 return;
             }
             
-            // Збираємо дані про навантаження вчителів
             const teachersData = {};
             
             subjects.forEach(subject => {
@@ -3770,7 +3508,6 @@
                     };
                 }
                 
-                // Підраховуємо заплановані години
                 teachersData[subject.teacher].totalPlanned += subject.hours;
                 teachersData[subject.teacher].subjects.push({
                     name: subject.name,
@@ -3778,7 +3515,6 @@
                 });
             });
             
-            // Підраховуємо фактично розміщені уроки
             classes.forEach(cls => {
                 Object.values(schedules[cls.id]).forEach(slot => {
                     if (Array.isArray(slot)) {
@@ -3797,19 +3533,15 @@
                 });
             });
             
-            // Сортуємо вчителів за навантаженням (спадання)
             const sortedTeachers = Object.entries(teachersData).sort((a, b) => b[1].totalPlanned - a[1].totalPlanned);
             
-            // Знаходимо максимальне навантаження для масштабування графіків
             const maxHours = Math.max(...sortedTeachers.map(([_, data]) => data.totalPlanned));
             
-            // Підраховуємо статистику
             const totalTeachers = sortedTeachers.length;
             const totalHours = sortedTeachers.reduce((sum, [_, data]) => sum + data.totalPlanned, 0);
             const avgHours = totalHours / totalTeachers;
             const totalScheduledHours = sortedTeachers.reduce((sum, [_, data]) => sum + data.totalScheduled, 0);
             
-            // Генеруємо HTML
             let html = `
                 <div class="report-result">
                     <h4>📊 Загальна статистика</h4>
@@ -3847,9 +3579,7 @@
             
             sortedTeachers.forEach(([teacher, data]) => {
                 const percentage = (data.totalPlanned / maxHours) * 100;
-                const scheduledPercentage = data.totalScheduled > 0 ? (data.totalScheduled / data.totalPlanned) * 100 : 0;
                 
-                // Визначаємо клас навантаження
                 let workloadClass = 'workload-light';
                 if (data.totalPlanned > avgHours * 1.2) {
                     workloadClass = 'workload-high';
@@ -3889,23 +3619,19 @@
             resultDiv.innerHTML = html;
         }
 
-        // Функції для експорту/імпорту предметів
+        // ===== Експорт предметів =====
         function exportSubjectsToExcel() {
             if (subjects.length === 0) {
                 alert('⚠️ Немає предметів для експорту');
                 return;
             }
 
-            // Перевіряємо чи завантажена бібліотека
             if (typeof XLSX === 'undefined') {
                 alert('⏳ Завантаження бібліотеки Excel... Спробуйте ще раз через секунду.');
                 return;
             }
 
-            // Створюємо workbook
             const wb = XLSX.utils.book_new();
-
-            // Створюємо дані для аркушу
             const data = [['Предмет', 'Вчитель', 'Годин/тиждень']];
             
             subjects.forEach(subject => {
@@ -3916,17 +3642,13 @@
                 ]);
             });
 
-            // Створюємо worksheet
             const ws = XLSX.utils.aoa_to_sheet(data);
-
-            // Встановлюємо ширину колонок
             ws['!cols'] = [
-                { wch: 30 },  // Предмет
-                { wch: 25 },  // Вчитель
-                { wch: 15 }   // Годин
+                { wch: 30 },
+                { wch: 25 },
+                { wch: 15 }
             ];
 
-            // Застосовуємо стилі
             const range = XLSX.utils.decode_range(ws['!ref']);
             for (let R = range.s.r; R <= range.e.r; ++R) {
                 for (let C = range.s.c; C <= range.e.c; ++C) {
@@ -3951,7 +3673,6 @@
                         }
                     };
                     
-                    // Стилі для заголовка
                     if (R === 0) {
                         ws[cell_ref].s.fill = {
                             patternType: 'solid',
@@ -3966,16 +3687,12 @@
                 }
             }
 
-            // Додаємо worksheet до workbook
             XLSX.utils.book_append_sheet(wb, ws, 'Предмети');
 
-            // Генеруємо назву файлу
             const date = new Date();
             const filename = `Predmety_${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}.xlsx`;
 
-            // Зберігаємо файл
             XLSX.writeFile(wb, filename);
-
             alert(`✅ Список предметів експортовано в файл ${filename}`);
         }
 
@@ -3983,7 +3700,6 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            // Перевіряємо чи завантажена бібліотека SheetJS
             if (typeof XLSX === 'undefined') {
                 alert('⏳ Завантаження бібліотеки Excel... Спробуйте ще раз через секунду.');
                 return;
@@ -3995,7 +3711,6 @@
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
 
-                    // Шукаємо аркуш "Предмети" або перший аркуш
                     let sheetName = 'Предмети';
                     if (!workbook.SheetNames.includes(sheetName)) {
                         sheetName = workbook.SheetNames[0];
@@ -4004,21 +3719,18 @@
                     const sheet = workbook.Sheets[sheetName];
                     const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
 
-                    console.log('📊 Імпорт предметів:', sheetData);
-
                     if (sheetData.length < 2) {
                         alert('⚠️ Файл не містить даних');
                         return;
                     }
 
-                    // Парсимо предмети (пропускаємо заголовок)
                     const newSubjects = [];
                     let tempSubjectId = nextSubjectId;
 
                     for (let i = 1; i < sheetData.length; i++) {
                         const row = sheetData[i];
                         
-                        if (!row[0] || !row[1]) continue; // Пропускаємо порожні рядки
+                        if (!row[0] || !row[1]) continue;
                         
                         const subjectName = row[0].toString().trim();
                         const teacherName = row[1].toString().trim();
@@ -4039,7 +3751,6 @@
                         return;
                     }
 
-                    // Запитуємо режим імпорту
                     const mode = confirm(
                         `📥 Імпорт предметів\n\n` +
                         `Знайдено предметів: ${newSubjects.length}\n\n` +
@@ -4048,10 +3759,8 @@
                     );
 
                     if (mode) {
-                        // ЗАМІНИТИ - видаляємо старі предмети та їх уроки з розкладу
                         const oldSubjectIds = subjects.map(s => s.id);
                         
-                        // Видаляємо всі уроки старих предметів з розкладу
                         Object.keys(schedules).forEach(classId => {
                             Object.keys(schedules[classId]).forEach(key => {
                                 const lesson = schedules[classId][key];
@@ -4071,11 +3780,8 @@
                         
                         alert(`✅ Предмети замінено!\n\nІмпортовано: ${newSubjects.length} предметів`);
                     } else {
-                        // ДОДАТИ - додаємо до існуючих
-                        // Створюємо мапу старих предметів для оновлення ID в розкладі
-                        const subjectMap = {}; // key: "назва|вчитель", value: {oldId, newId}
+                        const subjectMap = {};
                         
-                        // Перевіряємо чи є дублікати
                         newSubjects.forEach(newSubject => {
                             const key = `${newSubject.name}|${newSubject.teacher}`;
                             const existingSubject = subjects.find(s => 
@@ -4083,7 +3789,6 @@
                             );
                             
                             if (existingSubject) {
-                                // Якщо предмет вже існує - оновлюємо його години
                                 existingSubject.hours = newSubject.hours;
                                 subjectMap[key] = {
                                     oldId: existingSubject.id,
@@ -4091,7 +3796,6 @@
                                     updated: true
                                 };
                             } else {
-                                // Новий предмет - додаємо
                                 subjects.push(newSubject);
                                 subjectMap[key] = {
                                     oldId: null,
@@ -4109,41 +3813,29 @@
                         alert(`✅ Предмети оброблено!\n\nДодано нових: ${added}\nОновлено існуючих: ${updated}\nВсього: ${subjects.length} предметів`);
                     }
 
-                    // Оновлюємо інтерфейс
                     renderSubjects();
                     renderSchedules();
-                    
-                    // Автозбереження
                     saveToLocalStorage();
-                    
-                    // Оновлюємо список вчителів в звітах
                     updateTeachersList();
 
                 } catch (error) {
                     alert('❌ Помилка при імпорті з Excel: ' + error.message);
                     console.error('Помилка імпорту:', error);
-                    console.error('Stack:', error.stack);
                 }
             };
 
             reader.readAsArrayBuffer(file);
-            
-            // Очищаємо input
             event.target.value = '';
         }
 
-        // Функції для завантаження шаблонів
+        // ===== Шаблони =====
         function downloadSubjectsTemplate() {
-            // Перевіряємо чи завантажена бібліотека
             if (typeof XLSX === 'undefined') {
                 alert('⏳ Завантаження бібліотеки Excel... Спробуйте ще раз через секунду.');
                 return;
             }
 
-            // Створюємо workbook
             const wb = XLSX.utils.book_new();
-
-            // Створюємо дані для шаблону з прикладами
             const data = [
                 ['Предмет', 'Вчитель', 'Годин/тиждень'],
                 ['Математика', 'Іванов І.І.', '5'],
@@ -4153,17 +3845,13 @@
                 ['Хімія', 'Морозова Л.В.', '2']
             ];
 
-            // Створюємо worksheet
             const ws = XLSX.utils.aoa_to_sheet(data);
-
-            // Встановлюємо ширину колонок
             ws['!cols'] = [
-                { wch: 30 },  // Предмет
-                { wch: 25 },  // Вчитель
-                { wch: 15 }   // Годин
+                { wch: 30 },
+                { wch: 25 },
+                { wch: 15 }
             ];
 
-            // Застосовуємо стилі
             const range = XLSX.utils.decode_range(ws['!ref']);
             for (let R = range.s.r; R <= range.e.r; ++R) {
                 for (let C = range.s.c; C <= range.e.c; ++C) {
@@ -4188,7 +3876,6 @@
                         }
                     };
                     
-                    // Стилі для заголовка
                     if (R === 0) {
                         ws[cell_ref].s.fill = {
                             patternType: 'solid',
@@ -4199,9 +3886,7 @@
                             color: { rgb: 'FFFFFF' },
                             sz: 12
                         };
-                    }
-                    // Стилі для прикладів (сірий фон)
-                    else {
+                    } else {
                         ws[cell_ref].s.fill = {
                             patternType: 'solid',
                             fgColor: { rgb: 'f0f0f0' }
@@ -4210,10 +3895,7 @@
                 }
             }
 
-            // Додаємо worksheet до workbook
             XLSX.utils.book_append_sheet(wb, ws, 'Предмети');
-
-            // Зберігаємо файл
             XLSX.writeFile(wb, 'Shablon_Predmety.xlsx');
 
             alert('✅ Шаблон для предметів завантажено!\n\n' +
@@ -4228,186 +3910,33 @@
                   '5. Імпортуйте через кнопку "📥 Імпорт"');
         }
 
-        // Функція для друку розкладу в PDF
-        function printScheduleToPDF() {
-            if (classes.length === 0) {
-                alert('⚠️ Немає класів для друку');
-                return;
-            }
-
-            // Перевіряємо чи завантажена бібліотека
-            if (typeof html2pdf === 'undefined') {
-                alert('⏳ Завантаження бібліотеки PDF... Спробуйте ще раз через секунду.');
-                return;
-            }
-
-            // Створюємо тимчасовий контейнер для друку
-            const printContainer = document.createElement('div');
-            printContainer.style.background = 'white';
-            printContainer.style.padding = '5px';
-            printContainer.style.fontFamily = 'Arial, sans-serif';
-            
-            // Розбиваємо класи по 2 на сторінку
-            for (let i = 0; i < classes.length; i += 2) {
-                if (i > 0) {
-                    printContainer.innerHTML += '<div style="page-break-before: always;"></div>';
-                }
-                
-                // Перший клас на сторінці
-                const cls1 = classes[i];
-                printContainer.innerHTML += generateClassSchedule(cls1);
-                
-                // Другий клас на сторінці (якщо є)
-                if (i + 1 < classes.length) {
-                    const cls2 = classes[i + 1];
-                    printContainer.innerHTML += '<div style="margin-top: 15px;"></div>';
-                    printContainer.innerHTML += generateClassSchedule(cls2);
-                }
-            }
-            
-            document.body.appendChild(printContainer);
-            
-            // Чекаємо поки контент відрендериться
-            setTimeout(() => {
-                // Налаштування PDF
-                const opt = {
-                    margin: [5, 5, 5, 5],
-                    filename: `rozklad_${new Date().toISOString().split('T')[0]}.pdf`,
-                    image: { type: 'jpeg', quality: 0.95 },
-                    html2canvas: { 
-                        scale: 2,
-                        useCORS: true,
-                        logging: false,
-                        letterRendering: true
-                    },
-                    jsPDF: { 
-                        unit: 'mm', 
-                        format: 'a4', 
-                        orientation: 'portrait'  // Вертикальна орієнтація
-                    }
-                };
-                
-                // Генерація PDF
-                html2pdf().set(opt).from(printContainer).save().then(() => {
-                    document.body.removeChild(printContainer);
-                }).catch(error => {
-                    document.body.removeChild(printContainer);
-                    alert('❌ Помилка при створенні PDF: ' + error.message);
-                    console.error('PDF error:', error);
-                });
-            }, 500);
-        }
-        
-        // Допоміжна функція для генерації розкладу одного класу
-        function generateClassSchedule(cls) {
-            let html = `
-                <div>
-                    <h2 style="color: #667eea; margin: 0 0 8px 0; font-size: 18px; text-align: center;">
-                        ${cls.name}
-                    </h2>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
-                        <thead>
-                            <tr style="background: #667eea;">
-                                <th style="border: 1px solid #000; padding: 5px; color: white; font-weight: bold; text-align: center; width: 50px;">Урок</th>
-            `;
-            
-            days.forEach(day => {
-                html += `<th style="border: 1px solid #000; padding: 5px; color: white; font-weight: bold; text-align: center;">${day}</th>`;
-            });
-            
-            html += `
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            
-            // Генеруємо рядки уроків
-            for (let lessonNum = 0; lessonNum < lessons; lessonNum++) {
-                html += `<tr>`;
-                html += `<td style="border: 1px solid #000; padding: 5px; text-align: center; font-weight: bold; background: #f0f0f0;">${lessonNum + 1}</td>`;
-                
-                days.forEach((day, dayIndex) => {
-                    const key = `${dayIndex}-${lessonNum}`;
-                    const lesson = schedules[cls.id][key];
-                    
-                    let cellContent = '';
-                    
-                    if (lesson) {
-                        if (Array.isArray(lesson)) {
-                            // Підгрупи
-                            cellContent = '<div>';
-                            lesson.forEach((les, idx) => {
-                                cellContent += `
-                                    <div style="padding: 2px; margin-bottom: ${idx < lesson.length - 1 ? '3px' : '0'}; border: 1px solid #ddd; background: #f9f9f9; line-height: 1.3;">
-                                        <strong style="font-size: 10px;">${les.name}</strong><br>
-                                        <span style="font-size: 9px; color: #666;">${les.teacher}</span>
-                                    </div>
-                                `;
-                            });
-                            cellContent += '</div>';
-                        } else {
-                            // Звичайний урок
-                            cellContent = `
-                                <div style="line-height: 1.3;">
-                                    <strong style="font-size: 11px;">${lesson.name}</strong><br>
-                                    <span style="font-size: 10px; color: #666;">${lesson.teacher}</span>
-                                </div>
-                            `;
-                        }
-                    } else {
-                        cellContent = '&nbsp;';
-                    }
-                    
-                    html += `<td style="border: 1px solid #000; padding: 5px; background: #ffffff; text-align: center; vertical-align: middle; height: 45px;">${cellContent}</td>`;
-                });
-                
-                html += `</tr>`;
-            }
-            
-            html += `
-                    </tbody>
-                </table>
-            </div>
-            `;
-            
-            return html;
-        }
-
         function downloadScheduleTemplate() {
-            // Перевіряємо чи є класи
             if (classes.length === 0) {
                 alert('⚠️ Спочатку додайте класи на вкладці "Класи"');
                 return;
             }
 
-            // Перевіряємо чи завантажена бібліотека
             if (typeof XLSX === 'undefined') {
                 alert('⏳ Завантаження бібліотеки Excel... Спробуйте ще раз через секунду.');
                 return;
             }
 
-            // Створюємо workbook
             const wb = XLSX.utils.book_new();
-
-            // Створюємо порожній розклад з заголовками
             const data = [];
             
-            // Заголовок
             const header = ['День', 'Урок'];
             classes.forEach(cls => {
                 header.push(cls.name);
             });
             data.push(header);
 
-            // Генеруємо порожній розклад
             days.forEach(day => {
                 for (let i = 0; i < lessons; i++) {
                     const row = [
-                        i === 0 ? day : '',  // День тільки в першому рядку
-                        i + 1                // Номер уроку
+                        i === 0 ? day : '',
+                        i + 1
                     ];
                     
-                    // Додаємо порожні клітинки для кожного класу
                     classes.forEach(() => {
                         row.push('');
                     });
@@ -4416,27 +3945,23 @@
                 }
             });
 
-            // Створюємо worksheet
             const ws = XLSX.utils.aoa_to_sheet(data);
 
-            // Встановлюємо ширину колонок
             const colWidths = [
-                { wch: 12 },  // День
-                { wch: 8 }    // Урок
+                { wch: 12 },
+                { wch: 8 }
             ];
-            classes.forEach(() => colWidths.push({ wch: 30 })); // Класи
+            classes.forEach(() => colWidths.push({ wch: 30 }));
             ws['!cols'] = colWidths;
 
-            // Встановлюємо висоту рядків
             ws['!rows'] = [];
             for (let i = 0; i < data.length; i++) {
-                ws['!rows'].push({ hpt: i === 0 ? 20 : 60 }); // Заголовок менший, решта більші
+                ws['!rows'].push({ hpt: i === 0 ? 20 : 60 });
             }
 
-            // Об'єднуємо клітинки для днів тижня
             if (!ws['!merges']) ws['!merges'] = [];
             
-            let currentRow = 1; // Починаємо з 1 (0 - заголовок)
+            let currentRow = 1;
             days.forEach(() => {
                 ws['!merges'].push({
                     s: { r: currentRow, c: 0 },
@@ -4445,7 +3970,6 @@
                 currentRow += lessons;
             });
 
-            // Застосовуємо стилі
             const range = XLSX.utils.decode_range(ws['!ref']);
             
             for (let R = range.s.r; R <= range.e.r; ++R) {
@@ -4471,7 +3995,6 @@
                         }
                     };
                     
-                    // Стилі для заголовків
                     if (R === 0) {
                         ws[cell_ref].s.fill = {
                             patternType: 'solid',
@@ -4482,9 +4005,7 @@
                             color: { rgb: 'FFFFFF' },
                             sz: 12
                         };
-                    }
-                    // Стилі для колонки "День"
-                    else if (C === 0) {
+                    } else if (C === 0) {
                         ws[cell_ref].s.fill = {
                             patternType: 'solid',
                             fgColor: { rgb: 'e9ecef' }
@@ -4493,9 +4014,7 @@
                             bold: true,
                             sz: 11
                         };
-                    }
-                    // Стилі для колонки "Урок"
-                    else if (C === 1) {
+                    } else if (C === 1) {
                         ws[cell_ref].s.fill = {
                             patternType: 'solid',
                             fgColor: { rgb: 'f8f9fa' }
@@ -4508,10 +4027,8 @@
                 }
             }
 
-            // Додаємо worksheet до workbook
             XLSX.utils.book_append_sheet(wb, ws, 'Розклад');
 
-            // Створюємо аркуш з інструкцією та прикладами
             const instructionData = [
                 ['📝 ІНСТРУКЦІЯ ДЛЯ ЗАПОВНЕННЯ РОЗКЛАДУ'],
                 [''],
@@ -4540,7 +4057,6 @@
             const wsInstruction = XLSX.utils.aoa_to_sheet(instructionData);
             wsInstruction['!cols'] = [{ wch: 80 }];
 
-            // Стилюємо інструкцію
             const instrRange = XLSX.utils.decode_range(wsInstruction['!ref']);
             for (let R = instrRange.s.r; R <= instrRange.e.r; ++R) {
                 const cell_ref = XLSX.utils.encode_cell({ c: 0, r: R });
@@ -4563,7 +4079,6 @@
 
             XLSX.utils.book_append_sheet(wb, wsInstruction, 'Інструкція');
 
-            // Якщо є предмети - додаємо їх як довідку
             if (subjects.length > 0) {
                 const subjectsData = [['Предмет', 'Вчитель', 'Годин/тиждень']];
                 subjects.forEach(subject => {
@@ -4573,7 +4088,6 @@
                 const wsSubjects = XLSX.utils.aoa_to_sheet(subjectsData);
                 wsSubjects['!cols'] = [{ wch: 30 }, { wch: 25 }, { wch: 15 }];
 
-                // Стилюємо аркуш предметів
                 const subjRange = XLSX.utils.decode_range(wsSubjects['!ref']);
                 for (let R = subjRange.s.r; R <= subjRange.e.r; ++R) {
                     for (let C = subjRange.s.c; C <= subjRange.e.c; ++C) {
@@ -4606,7 +4120,6 @@
                 XLSX.utils.book_append_sheet(wb, wsSubjects, 'Предмети');
             }
 
-            // Зберігаємо файл
             XLSX.writeFile(wb, 'Shablon_Rozklad.xlsx');
 
             alert('✅ Шаблон розкладу завантажено!\n\n' +
@@ -4617,9 +4130,141 @@
                   '📝 Заповніть розклад згідно інструкції та імпортуйте назад!');
         }
 
-        // Завантаження даних з localStorage при запуску
-        loadFromLocalStorage();
+        // ===== Друк в PDF =====
+        function printScheduleToPDF() {
+            if (classes.length === 0) {
+                alert('⚠️ Немає класів для друку');
+                return;
+            }
 
+            if (typeof html2pdf === 'undefined') {
+                alert('⏳ Завантаження бібліотеки PDF... Спробуйте ще раз через секунду.');
+                return;
+            }
+
+            const printContainer = document.createElement('div');
+            printContainer.style.background = 'white';
+            printContainer.style.padding = '5px';
+            printContainer.style.fontFamily = 'Arial, sans-serif';
+            
+            for (let i = 0; i < classes.length; i += 2) {
+                if (i > 0) {
+                    printContainer.innerHTML += '<div style="page-break-before: always;"></div>';
+                }
+                
+                const cls1 = classes[i];
+                printContainer.innerHTML += generateClassSchedule(cls1);
+                
+                if (i + 1 < classes.length) {
+                    const cls2 = classes[i + 1];
+                    printContainer.innerHTML += '<div style="margin-top: 15px;"></div>';
+                    printContainer.innerHTML += generateClassSchedule(cls2);
+                }
+            }
+            
+            document.body.appendChild(printContainer);
+            
+            setTimeout(() => {
+                const opt = {
+                    margin: [5, 5, 5, 5],
+                    filename: `rozklad_${new Date().toISOString().split('T')[0]}.pdf`,
+                    image: { type: 'jpeg', quality: 0.95 },
+                    html2canvas: { 
+                        scale: 2,
+                        useCORS: true,
+                        logging: false,
+                        letterRendering: true
+                    },
+                    jsPDF: { 
+                        unit: 'mm', 
+                        format: 'a4', 
+                        orientation: 'portrait'
+                    }
+                };
+                
+                html2pdf().set(opt).from(printContainer).save().then(() => {
+                    document.body.removeChild(printContainer);
+                }).catch(error => {
+                    document.body.removeChild(printContainer);
+                    alert('❌ Помилка при створенні PDF: ' + error.message);
+                    console.error('PDF error:', error);
+                });
+            }, 500);
+        }
+
+        function generateClassSchedule(cls) {
+            let html = `
+                <div>
+                    <h2 style="color: #667eea; margin: 0 0 8px 0; font-size: 18px; text-align: center;">
+                        ${cls.name}
+                    </h2>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                        <thead>
+                            <tr style="background: #667eea;">
+                                <th style="border: 1px solid #000; padding: 5px; color: white; font-weight: bold; text-align: center; width: 50px;">Урок</th>
+            `;
+            
+            days.forEach(day => {
+                html += `<th style="border: 1px solid #000; padding: 5px; color: white; font-weight: bold; text-align: center;">${day}</th>`;
+            });
+            
+            html += `
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            for (let lessonNum = 0; lessonNum < lessons; lessonNum++) {
+                html += `<tr>`;
+                html += `<td style="border: 1px solid #000; padding: 5px; text-align: center; font-weight: bold; background: #f0f0f0;">${lessonNum + 1}</td>`;
+                
+                days.forEach((day, dayIndex) => {
+                    const key = `${dayIndex}-${lessonNum}`;
+                    const lesson = schedules[cls.id][key];
+                    
+                    let cellContent = '';
+                    
+                    if (lesson) {
+                        if (Array.isArray(lesson)) {
+                            cellContent = '<div>';
+                            lesson.forEach((les, idx) => {
+                                cellContent += `
+                                    <div style="padding: 2px; margin-bottom: ${idx < lesson.length - 1 ? '3px' : '0'}; border: 1px solid #ddd; background: #f9f9f9; line-height: 1.3;">
+                                        <strong style="font-size: 10px;">${les.name}</strong><br>
+                                        <span style="font-size: 9px; color: #666;">${les.teacher}</span>
+                                    </div>
+                                `;
+                            });
+                            cellContent += '</div>';
+                        } else {
+                            cellContent = `
+                                <div style="line-height: 1.3;">
+                                    <strong style="font-size: 11px;">${lesson.name}</strong><br>
+                                    <span style="font-size: 10px; color: #666;">${lesson.teacher}</span>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        cellContent = '&nbsp;';
+                    }
+                    
+                    html += `<td style="border: 1px solid #000; padding: 5px; background: #ffffff; text-align: center; vertical-align: middle; height: 45px;">${cellContent}</td>`;
+                });
+                
+                html += `</tr>`;
+            }
+            
+            html += `
+                    </tbody>
+                </table>
+            </div>
+            `;
+            
+            return html;
+        }
+
+        // ===== Запуск =====
+        loadFromLocalStorage();
         renderClasses();
         renderSubjects();
         renderSchedules();
