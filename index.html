@@ -860,6 +860,25 @@
             font-weight: 600;
         }
 
+        /* Компактний вигляд */
+        .teacher-schedule-table.compact th {
+            padding: 5px 6px;
+            font-size: 12px;
+        }
+
+        .teacher-schedule-table.compact td {
+            padding: 3px 4px;
+            font-size: 12px;
+        }
+
+        .teacher-schedule-table.compact .class-name {
+            font-size: 10px;
+        }
+
+        .teacher-schedule-table.compact td.no-lesson {
+            font-size: 11px;
+        }
+
         .workload-table {
             width: 100%;
             border-collapse: collapse;
@@ -1114,6 +1133,11 @@
                 </div>
                 
                 <button class="btn btn-primary" onclick="showClassSchedule()">📅 Показати розклад</button>
+
+                <label style="display: inline-flex; align-items: center; gap: 6px; margin-left: 15px; cursor: pointer; font-size: 14px; color: #333;">
+                    <input type="checkbox" id="classScheduleCompact" onchange="showClassSchedule()">
+                    📐 Компактний вигляд
+                </label>
                 
                 <div id="classScheduleResult" style="margin-top: 20px;"></div>
             </div>
@@ -3548,6 +3572,7 @@
         function showClassSchedule() {
             const classId = Number(document.getElementById('reportClass').value);
             const resultDiv = document.getElementById('classScheduleResult');
+            const isCompact = document.getElementById('classScheduleCompact').checked;
 
             if (!classId) {
                 resultDiv.innerHTML = '<p style="color: #dc3545;">⚠️ Будь ласка, оберіть клас</p>';
@@ -3562,11 +3587,18 @@
 
             const classSchedule = schedules[classId] || {};
 
+            // Параметри вигляду картки уроку залежно від режиму
+            const cardPadding = isCompact ? '2px 4px' : '6px 8px';
+            const cardMargin = isCompact ? '2px' : '5px';
+            const subjectFontSize = isCompact ? '11px' : 'inherit';
+            const teacherFontSize = isCompact ? '9px' : '12px';
+            const cardRadius = isCompact ? '4px' : '6px';
+
             // Генеруємо таблицю
             let html = `
                 <div class="report-result">
                     <h4>🏫 Розклад класу: ${cls.name}</h4>
-                    <table class="teacher-schedule-table">
+                    <table class="teacher-schedule-table${isCompact ? ' compact' : ''}">
                         <thead>
                             <tr>
                                 <th style="width: 80px;">Урок</th>
@@ -3595,9 +3627,9 @@
                         lessonList.forEach((les, idx) => {
                             const color = getSubjectColor(les.subjectId);
                             html += `
-                                <div style="background: ${color}; color: white; border-radius: 6px; padding: 6px 8px; margin-bottom: ${idx < lessonList.length - 1 ? '5px' : '0'};">
-                                    <div style="font-weight: 600;">${les.name}</div>
-                                    <div style="font-size: 12px; opacity: 0.9;">${les.teacher}</div>
+                                <div style="background: ${color}; color: white; border-radius: ${cardRadius}; padding: ${cardPadding}; margin-bottom: ${idx < lessonList.length - 1 ? cardMargin : '0'};">
+                                    <div style="font-weight: 600; font-size: ${subjectFontSize};">${les.name}</div>
+                                    <div style="font-size: ${teacherFontSize}; opacity: 0.9;">${les.teacher}</div>
                                 </div>
                             `;
                         });
