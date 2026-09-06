@@ -400,6 +400,19 @@
             flex: 1;
             min-height: 0;
         }
+
+        .schedule-wrapper.fit-view {
+            overflow: hidden;
+        }
+
+        .schedule-table.fit-view {
+            transform-origin: top left;
+        }
+
+        #fullViewButton.active-toggle {
+            background: #218838;
+            box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5);
+        }
         
         .schedule-wrapper::-webkit-scrollbar {
             width: 12px;
@@ -1010,6 +1023,7 @@
                 <button class="btn btn-danger" onclick="clearDemoData()">🗑️ Видалити дані</button>
                 <button class="btn btn-info" onclick="checkTeacherConflicts()">🔍 Перевірка на збіг</button>
                 <button class="btn btn-info" id="magnifierButton" onclick="toggleMagnifier()">🔎 Лупа</button>
+                <button class="btn btn-info" id="fullViewButton" onclick="toggleFullScheduleView()">🖥️ Весь розклад на екрані</button>
                 <input type="file" id="excelInput" accept=".xlsx,.xls" onchange="importFromExcel(event)">
             </div>
             <div id="scheduleContent"></div>
@@ -1193,6 +1207,10 @@
             
             event.target.classList.add('active');
             document.getElementById(tabName + 'Tab').classList.add('active');
+
+            if (tabName === 'schedule' && fullScheduleView) {
+                requestAnimationFrame(() => applyFullScheduleView());
+            }
         }
 
         function addClass() {
@@ -1730,7 +1748,70 @@
             
             // Додаємо обробники
             attachScheduleDragHandlers();
+
+            // Якщо активний режим "весь розклад на екрані" - перерахувати масштаб
+            if (fullScheduleView) {
+                applyFullScheduleView();
+            }
         }
+
+        // ===== Режим "Весь розклад на екрані" =====
+        let fullScheduleView = false;
+
+        function toggleFullScheduleView() {
+            fullScheduleView = !fullScheduleView;
+
+            const btn = document.getElementById('fullViewButton');
+            if (btn) {
+                btn.classList.toggle('active-toggle', fullScheduleView);
+                btn.textContent = fullScheduleView
+                    ? '🖥️ Звичайний вигляд'
+                    : '🖥️ Весь розклад на екрані';
+            }
+
+            applyFullScheduleView();
+        }
+
+        function applyFullScheduleView() {
+            const wrapper = document.querySelector('.schedule-wrapper');
+            const table = document.querySelector('.schedule-table');
+            if (!wrapper || !table) return;
+
+            if (!fullScheduleView) {
+                wrapper.classList.remove('fit-view');
+                table.classList.remove('fit-view');
+                table.style.transform = 'none';
+                wrapper.style.height = '';
+                return;
+            }
+
+            // Спочатку скидаємо масштаб, щоб коректно виміряти природний розмір таблиці
+            table.style.transform = 'none';
+            wrapper.classList.add('fit-view');
+
+            requestAnimationFrame(() => {
+                const wrapperWidth = wrapper.clientWidth;
+                const wrapperHeight = wrapper.clientHeight;
+                const tableWidth = table.scrollWidth;
+                const tableHeight = table.scrollHeight;
+
+                if (!tableWidth || !tableHeight || !wrapperWidth || !wrapperHeight) return;
+
+                const scale = Math.min(wrapperWidth / tableWidth, wrapperHeight / tableHeight, 1);
+
+                table.classList.add('fit-view');
+                table.style.transform = `scale(${scale})`;
+                // Компенсуємо порожнє місце, що залишається під масштабованою таблицею
+                wrapper.style.height = (tableHeight * scale) + 'px';
+            });
+        }
+
+        // Перераховуємо масштаб при зміні розміру вікна
+        window.addEventListener('resize', () => {
+            if (fullScheduleView) {
+                applyFullScheduleView();
+            }
+        });
 
         let draggedElement = null;
         let draggedSubjectId = null;
